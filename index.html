@@ -26,6 +26,7 @@
       display: block;
       width: 100%;
       height: 100%;
+      touch-action: none;
     }
     .overlay {
       position: fixed;
@@ -268,12 +269,27 @@
   </div>
 
   <script>
+    // سازگاری roundRect برای تمام نسخه‌های مرورگر اندروید
+    if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
+    }
+
     // ==========================================
     // ۱. تنظیمات اختصاصی ربات و استاندارد بله
     // ==========================================
-    const BOT_USERNAME = "basket_pro_bot"; // آیدی ربات خودت در بله (بدون @)
+    const BOT_USERNAME = "basket_pro_game_bot";
     const CHANNEL_ID = "@gamee_balee";
-    // اگر API کلودفلر یا فایربیس برای رنکینگ آنلاین داری آدرسش را اینجا بگذار (اختیاری)
     const LEADERBOARD_API_URL = "";
 
     const webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
@@ -334,7 +350,6 @@
 
     async function submitScore(score) {
       setLocalBest(score);
-      // جلوگیری کامل از ثبت بازیکن مهمان در رنکینگ
       if (!isAuthenticated || score <= 0) return;
 
       if (LEADERBOARD_API_URL) {
@@ -479,7 +494,6 @@
       initAudio();
       if (!audioCtx) return;
 
-      // صدای تور (Swish)
       const bufferSize = audioCtx.sampleRate * 0.25;
       const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
       const data = buffer.getChannelData(0);
@@ -499,7 +513,6 @@
       nGain.connect(audioCtx.destination);
       noise.start();
 
-      // ملودی امتیاز و تشویق تماشاچی
       const notes = isClean ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
       notes.forEach((freq, idx) => {
         const osc = audioCtx.createOscillator();
@@ -551,21 +564,17 @@
     window.addEventListener("resize", resize);
     resize();
 
-    // وضعیت بازی
-    let gameState = "MENU"; // MENU | PLAYING | GAMEOVER
+    let gameState = "MENU";
     let score = 0;
     let timeLeft = 21.0;
     let lastTimestamp = 0;
 
-    // سیستم باد (جهت: -1 چپ، 1 راست | شدت: 1 تا 3)
     let windDir = 1;
     let windLevel = 1;
 
-    // مختصات زمین و بازیکن
     const floorY = () => H * 0.84;
     const playerPos = () => ({ x: Math.max(68, W * 0.16), y: floorY() });
 
-    // وضعیت توپ
     const ball = {
       x: 0,
       y: 0,
@@ -579,17 +588,14 @@
       prevY: 0
     };
 
-    // نشانه گیری
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
     let dragCurrent = { x: 0, y: 0 };
     let aimVx = 0, aimVy = 0;
 
-    // انیمیشن بازیکن و تور
     let playerJump = 0;
     let netShake = 0;
 
-    // حلقه و تخته بسکتبال متحرک
     const hoop = {
       baseX: 0,
       baseY: 0,
@@ -599,9 +605,7 @@
       movePhase: 0
     };
 
-    // متن‌های شناور (+3 SEC, +6 SEC, CLEAN SHOT)
     let floatingTexts = [];
-    // فلاش دوربین تماشاچی‌ها
     let crowdFlashes = [];
     let crowdPeople = [];
 
@@ -627,9 +631,9 @@
       if (score < 2) {
         windLevel = 1;
       } else if (score < 6) {
-        windLevel = Math.floor(Math.random() * 2) + 1; // 1 یا 2
+        windLevel = Math.floor(Math.random() * 2) + 1;
       } else {
-        windLevel = Math.floor(Math.random() * 3) + 1; // 1 تا 3
+        windLevel = Math.floor(Math.random() * 3) + 1;
       }
     }
 
@@ -683,7 +687,6 @@
       floatingTexts.push({ text, x, y, color, size, life: 1.0 });
     }
 
-    // محاسبه بردار پرتاب از روی کشیدن انگشت
     function updateAimVelocity() {
       const dx = dragStart.x - dragCurrent.x;
       const dy = dragStart.y - dragCurrent.y;
@@ -693,7 +696,6 @@
         aimVy = 0;
         return;
       }
-      // امکان کشیدن به عقب (تیروکمان) یا کشیدن به جلو/بالا
       let pullX = dx;
       let pullY = dy;
       if (dragCurrent.x > dragStart.x + 15 && dragCurrent.y < dragStart.y - 15) {
@@ -709,7 +711,6 @@
       if (aimVy > -260) aimVy = -260;
     }
 
-    // رویدادهای لمس و موس
     function getPointerPos(e) {
       const t = e.touches ? e.touches[0] : e;
       return { x: t.clientX, y: t.clientY };
@@ -731,7 +732,7 @@
       updateAimVelocity();
     });
 
-    window.addEventListener("pointerup", () => {
+    function releaseShot() {
       if (!isDragging) return;
       isDragging = false;
       if (gameState !== "PLAYING" || ball.inFlight) return;
@@ -742,9 +743,11 @@
         playerJump = 1.0;
         playThrowSound();
       }
-    });
+    }
 
-    // فیزیک برخورد توپ با نقطه (لبه حلقه یا تخته)
+    window.addEventListener("pointerup", releaseShot);
+    window.addEventListener("pointercancel", releaseShot);
+
     function collideCirclePoint(px, py, bounce = 0.68) {
       const dx = ball.x - px;
       const dy = ball.y - py;
@@ -765,7 +768,6 @@
     }
 
     function update(dt) {
-      // فلاش تصادفی تماشاچی‌ها
       if (Math.random() < 0.07) {
         crowdFlashes.push({
           x: Math.random() * W,
@@ -787,7 +789,6 @@
 
       if (gameState !== "PLAYING") return;
 
-      // تایمر
       timeLeft -= dt;
       if (timeLeft <= 0) {
         timeLeft = 0;
@@ -795,7 +796,6 @@
         return;
       }
 
-      // حرکت حلقه بعد از ۲ امتیاز اول
       hoop.baseX = W * 0.78;
       hoop.baseY = H * 0.43;
       if (score >= 2) {
@@ -817,7 +817,6 @@
         return;
       }
 
-      // فیزیک پرواز توپ + نیروی باد
       const gravity = 980;
       const windAccel = windDir * windLevel * 125;
       ball.prevY = ball.y;
@@ -827,7 +826,6 @@
       ball.y += ball.vy * dt;
       ball.rot += (ball.vx * 0.015) * dt;
 
-      // برخورد با تخته بسکتبال
       const boardX = hoop.x + hoop.rimRadius + 8;
       const boardTop = hoop.y - 68;
       const boardBottom = hoop.y + 18;
@@ -845,13 +843,11 @@
         }
       }
 
-      // برخورد با لبه‌های چپ و راست حلقه
       const leftRimX = hoop.x - hoop.rimRadius;
       const rightRimX = hoop.x + hoop.rimRadius;
       collideCirclePoint(leftRimX, hoop.y);
       collideCirclePoint(rightRimX, hoop.y);
 
-      // تشخیص گل شدن (عبور از بالا به پایین از داخل حلقه)
       if (
         !ball.scoredThisShot &&
         ball.vy > 0 &&
@@ -874,7 +870,6 @@
         randomizeWind();
       }
 
-      // ریست توپ بعد از افتادن یا خروج از صفحه
       if (ball.y > floorY() + 30 || ball.x > W + 70 || ball.x < -70) {
         resetBall();
       }
@@ -884,7 +879,6 @@
     // ۵. رندر صحنه، اسکوربورد، باد و کاراکتر
     // ==========================================
     function drawArena() {
-      // پس‌زمینه قرمز سالن
       const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
       bgGrad.addColorStop(0, "#3b0912");
       bgGrad.addColorStop(0.55, "#6b1220");
@@ -892,7 +886,6 @@
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // سازه‌های فلزی سقف
       ctx.strokeStyle = "rgba(25, 4, 8, 0.55)";
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -903,7 +896,6 @@
       }
       ctx.stroke();
 
-      // تماشاچی‌ها در پس‌زمینه
       const t = performance.now() * 0.004;
       crowdPeople.forEach(p => {
         const bob = Math.sin(t + p.bobOffset) * (gameState === "PLAYING" && netShake > 0 ? 5 : 1.5);
@@ -914,7 +906,6 @@
         ctx.fillRect(p.x - 10, p.y + 8 + bob, 20, 22);
       });
 
-      // فلاش دوربین تماشاچی‌ها
       crowdFlashes.forEach(f => {
         const rad = 16 * f.life;
         const g = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, rad);
@@ -926,7 +917,6 @@
         ctx.fill();
       });
 
-      // تابلوهای تبلیغاتی آبی و سفید کنار زمین
       const bannerY = floorY() - 34;
       ctx.fillStyle = "#1d3557";
       ctx.fillRect(0, bannerY, W, 34);
@@ -939,7 +929,6 @@
         ctx.fillStyle = "#f1faee";
       }
 
-      // کف‌پوش پارکت
       const floorGrad = ctx.createLinearGradient(0, floorY(), 0, H);
       floorGrad.addColorStop(0, "#d97724");
       floorGrad.addColorStop(1, "#8c430e");
@@ -960,7 +949,6 @@
       const boxW = 128;
       const boxH = 88;
 
-      // قاب اسکوربورد
       ctx.fillStyle = "rgba(18, 4, 8, 0.78)";
       ctx.strokeStyle = "rgba(255, 190, 11, 0.45)";
       ctx.lineWidth = 2;
@@ -969,14 +957,12 @@
       ctx.fill();
       ctx.stroke();
 
-      // تایمر دیجیتال بزرگ
       const secText = Math.ceil(timeLeft).toString().padStart(2, "0");
       ctx.fillStyle = timeLeft <= 5 ? "#ff4d6d" : "#ffffff";
       ctx.font = "900 34px monospace";
       ctx.textAlign = "center";
       ctx.fillText(secText, boxX + boxW / 2, boxY + 38);
 
-      // نشانگر باد زیر تایمر (۱ تا ۳ فلش زرد)
       const arrowY = boxY + 66;
       const centerX = boxX + boxW / 2;
       for (let i = 0; i < 3; i++) {
@@ -986,12 +972,10 @@
         const ax = centerX + offset;
         ctx.beginPath();
         if (windDir === 1) {
-          // فلش به راست ▶
           ctx.moveTo(ax - 7, arrowY - 7);
           ctx.lineTo(ax + 7, arrowY);
           ctx.lineTo(ax - 7, arrowY + 7);
         } else {
-          // فلش به چپ ◀
           ctx.moveTo(ax + 7, arrowY - 7);
           ctx.lineTo(ax - 7, arrowY);
           ctx.lineTo(ax + 7, arrowY + 7);
@@ -1000,7 +984,6 @@
         ctx.fill();
       }
 
-      // نمایش امتیاز بالا وسط
       ctx.fillStyle = "rgba(18, 4, 8, 0.72)";
       ctx.beginPath();
       ctx.roundRect(W / 2 - 48, 16, 96, 44, 12);
@@ -1017,13 +1000,11 @@
       const crouch = isDragging && !ball.inFlight ? 6 : 0;
       const baseY = p.y - jumpOffset;
 
-      // سایه روی زمین
       ctx.fillStyle = "rgba(0,0,0,0.35)";
       ctx.beginPath();
       ctx.ellipse(p.x, p.y + 4, 22, 6, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // پاها
       ctx.strokeStyle = "#f1c27d";
       ctx.lineWidth = 7;
       ctx.lineCap = "round";
@@ -1034,40 +1015,34 @@
       ctx.lineTo(p.x + 10, baseY - 4);
       ctx.stroke();
 
-      // شورت قرمز
       ctx.fillStyle = "#e63946";
       ctx.fillRect(p.x - 12, baseY - 36 + crouch, 24, 15);
 
-      // پیراهن زرد
       ctx.fillStyle = "#ffbe0b";
       ctx.beginPath();
       ctx.roundRect(p.x - 13, baseY - 64 + crouch, 26, 30, 6);
       ctx.fill();
 
-      // شماره پیراهن
       ctx.fillStyle = "#800f2f";
       ctx.font = "bold 12px Tahoma";
       ctx.fillText("7", p.x - 4, baseY - 45 + crouch);
 
-      // سر و موهای فر + هدبند قرمز
       const headY = baseY - 76 + crouch;
       ctx.fillStyle = "#f1c27d";
       ctx.beginPath();
       ctx.arc(p.x, headY, 11, 0, Math.PI * 2);
       ctx.fill();
 
-      // موهای فر
       ctx.fillStyle = "#1d1e22";
       for (let a = Math.PI; a <= Math.PI * 2.1; a += 0.45) {
         ctx.beginPath();
         ctx.arc(p.x + Math.cos(a) * 10, headY + Math.sin(a) * 10 - 2, 5, 0, Math.PI * 2);
         ctx.fill();
       }
-      // هدبند قرمز
+
       ctx.fillStyle = "#e63946";
       ctx.fillRect(p.x - 11, headY - 5, 22, 4);
 
-      // دست‌ها
       ctx.strokeStyle = "#f1c27d";
       ctx.lineWidth = 6;
       ctx.beginPath();
@@ -1084,11 +1059,9 @@
       const boardX = hoop.x + hoop.rimRadius + 8;
       const boardTop = hoop.y - 68;
 
-      // پایه فلزی پشت تخته
       ctx.fillStyle = "#2b2d42";
       ctx.fillRect(boardX + 10, hoop.y - 16, W - boardX, 12);
 
-      // تخته بسکتبال سفید با کادر مشکی
       ctx.fillStyle = "#ffffff";
       ctx.strokeStyle = "#111111";
       ctx.lineWidth = 3;
@@ -1097,7 +1070,6 @@
       ctx.fill();
       ctx.stroke();
 
-      // تور بسکتبال
       const leftX = hoop.x - hoop.rimRadius + 3;
       const rightX = hoop.x + hoop.rimRadius - 3;
       const sway = Math.sin(netShake * Math.PI * 4) * 8 * netShake;
@@ -1125,7 +1097,6 @@
         ctx.stroke();
       }
 
-      // حلقه نارنجی
       ctx.strokeStyle = "#ff5400";
       ctx.lineWidth = 6;
       ctx.lineCap = "round";
@@ -1138,7 +1109,6 @@
     function drawAimDots() {
       if (!isDragging || ball.inFlight || Math.hypot(aimVx, aimVy) < 250) return;
       const gravity = 980;
-      // خط نقطه‌چین مسیر اولیه پرتاب (باد در مسیر پرواز اثر می‌گذارد)
       for (let i = 1; i <= 14; i++) {
         const t = i * 0.045;
         const px = ball.x + aimVx * t;
@@ -1165,7 +1135,6 @@
       ctx.arc(0, 0, ball.r, 0, Math.PI * 2);
       ctx.fill();
 
-      // خطوط روی توپ بسکتبال
       ctx.strokeStyle = "#2b0902";
       ctx.lineWidth = 1.8;
       ctx.beginPath();
@@ -1210,7 +1179,6 @@
       requestAnimationFrame(loop);
     }
 
-    // دکمه‌های رابط کاربری و اشتراک‌گذاری
     document.getElementById("startBtn").addEventListener("click", startGame);
     document.getElementById("restartBtn").addEventListener("click", startGame);
 
@@ -1226,7 +1194,6 @@
       }
     });
 
-    // راه‌اندازی اولیه
     resetHoopPosition();
     resetBall();
     renderLeaderboard("startRankList", "myRankBadge", "guestWarningStart");
