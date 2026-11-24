@@ -685,6 +685,7 @@
     window.addEventListener("resize", resize);
     resize();
 
+    // وضعیت‌های بازی: READY | PLAYING | BUZZER_WAIT (تایم تمام شده ولی توپ در هواست) | GAMEOVER
     var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
@@ -843,7 +844,7 @@
     }
 
     function handleStart(e) {
-      if (gameState === "GAMEOVER") return;
+      if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       initAudio();
       if (gameState === "READY") {
@@ -945,8 +946,19 @@
       return false;
     }
 
+    // بررسی اینکه آیا هنوز توپِ در حال شوت و بلاتکلیفی در هوا وجود دارد یا نه
+    function hasPendingShotInAir() {
+      for (var i = 0; i < activeBalls.length; i++) {
+        var b = activeBalls[i];
+        if (!b.scored && !b.fading && b.floorBounces === 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی (۲ برخورد با زمین و محو شدن تدریجی)
+    // ۴. به‌روزرسانی منطق بازی + قانون شوت لحظه آخر (Buzzer Beater)
     // ==========================================
     function update(dt) {
       if (Math.random() < 0.08) {
@@ -967,7 +979,7 @@
 
       if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.8);
 
-      if (!hasBallInHand) {
+      if (!hasBallInHand && gameState !== "BUZZER_WAIT") {
         reloadTimer -= dt;
         if (reloadTimer <= 0) hasBallInHand = true;
       }
@@ -990,8 +1002,14 @@
         timeLeft -= dt;
         if (timeLeft <= 0) {
           timeLeft = 0;
-          triggerGameOver();
-          return;
+          isDragging = false;
+          if (hasPendingShotInAir()) {
+            // تایم تمام شده ولی توپ در هواست: منتظر نتیجه پرتاب بمان
+            gameState = "BUZZER_WAIT";
+          } else {
+            triggerGameOver();
+            return;
+          }
         }
       }
 
@@ -1004,7 +1022,6 @@
         b.prevY = b.y;
         if (b.rimCooldown > 0) b.rimCooldown -= dt;
 
-        // محو شدن تدریجی توپ بعد از برخورد دوم با زمین
         if (b.fading) {
           b.alpha -= dt * 2.1;
           if (b.alpha <= 0) {
@@ -1077,6 +1094,12 @@
           timeLeft = Math.min(60, timeLeft + addSec);
           playScoreWithChainAndCrowd(isClean);
 
+          // اگر در حالت انتظار پایان بازی گل شد، زمان اضافه می‌شود و بازی ادامه پیدا می‌کند
+          if (gameState === "BUZZER_WAIT") {
+            gameState = "PLAYING";
+            hasBallInHand = true;
+          }
+
           if (isClean) {
             spawnPopup(["+" + addSec + " SEC", "CLEAN", "SHOT"], hoop.x + 56, hoop.y + 8);
           } else {
@@ -1090,7 +1113,6 @@
           }
         }
 
-        // برخورد با کف پارکت سالن: فقط ۲ بار و بعد محو شدن تدریجی
         var floor = courtFloorY() - 8;
         if (b.y > floor) {
           b.y = floor;
@@ -1128,6 +1150,11 @@
           }
           activeBalls.splice(i, 1);
         }
+      }
+
+      // اگر تایمر صفر شده و تکلیف توپ(های) پرتاب‌شده مشخص شد و گل نشد، بازی تمام شود
+      if (gameState === "BUZZER_WAIT" && !hasPendingShotInAir()) {
+        triggerGameOver();
       }
     }
 
@@ -1459,7 +1486,7 @@
       }
       ctx.stroke();
 
-      if (hasBallInHand) {
+      if (hasBallInHand && gameState !== "BUZZER_WAIT" && gameState !== "GAMEOVER") {
         var hp = handPos();
         drawSingleBall(hp.x, hp.y + crouch, 13.5, 0.35, 1.0);
       }
@@ -1521,7 +1548,7 @@
     }
 
     function drawAimArc() {
-      if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
+      if (!isDragging || !hasBallInHand || gameState !== "PLAYING" || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
       var gravity = 980;
       var dots = 15;
