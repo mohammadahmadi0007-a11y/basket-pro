@@ -13,24 +13,33 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
-      font-family: Tahoma, Vazirmatn, sans-serif;
+      font-family: Tahoma, sans-serif;
     }
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #1a0508;
+      background: #2b070d;
     }
     #gameCanvas {
-      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
+      display: block;
+      z-index: 1;
       touch-action: none;
     }
     .overlay {
       position: fixed;
-      inset: 0;
-      background: rgba(18, 4, 8, 0.9);
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(18, 4, 8, 0.92);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -43,7 +52,7 @@
       display: none !important;
     }
     .title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 900;
       color: #ffbe0b;
       text-shadow: 0 4px 16px rgba(255, 190, 11, 0.45);
@@ -59,12 +68,11 @@
     .card {
       width: 100%;
       max-width: 380px;
-      background: rgba(42, 10, 16, 0.95);
-      border: 1px solid rgba(255, 190, 11, 0.28);
+      background: rgba(42, 10, 16, 0.96);
+      border: 1px solid rgba(255, 190, 11, 0.35);
       border-radius: 18px;
       padding: 14px;
       margin-bottom: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     .card-header {
       display: flex;
@@ -75,26 +83,26 @@
       font-weight: bold;
       margin-bottom: 10px;
       padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     }
     .rank-list {
       display: flex;
       flex-direction: column;
       gap: 7px;
-      max-height: 215px;
+      max-height: 200px;
       overflow-y: auto;
     }
     .rank-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
       padding: 8px 12px;
       border-radius: 11px;
       font-size: 13px;
     }
     .rank-item.me {
-      background: rgba(46, 204, 113, 0.22);
+      background: rgba(46, 204, 113, 0.25);
       border: 1px solid #2ecc71;
     }
     .player-info {
@@ -130,7 +138,7 @@
       color: #ffb703;
       text-align: center;
       margin-top: 8px;
-      background: rgba(255, 183, 3, 0.12);
+      background: rgba(255, 183, 3, 0.14);
       padding: 6px;
       border-radius: 8px;
     }
@@ -143,8 +151,8 @@
     }
     .stat-box {
       flex: 1;
-      background: rgba(42, 10, 16, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(42, 10, 16, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 14px;
       padding: 10px;
       text-align: center;
@@ -177,12 +185,11 @@
     .btn-primary {
       background: linear-gradient(135deg, #2ecc71, #27ae60);
       color: #fff;
-      box-shadow: 0 6px 20px rgba(46, 204, 113, 0.35);
     }
     .btn-share {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
       color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       font-size: 14px;
     }
     .channel-tag {
@@ -192,3 +199,1031 @@
       background: rgba(255, 255, 255, 0.08);
       padding: 6px 14px;
       border-radius: 20px;
+    }
+    #soundToggle {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 15;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <button id="soundToggle" type="button" onclick="toggleSound()">🔊</button>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- صفحه شروع -->
+  <div id="startScreen" class="overlay">
+    <div class="title">🏀 BASKET PRO</div>
+    <div class="subtitle">انگشتت رو بکش و رها کن! حواست به جهت و قدرت باد زیر تایمر باشه</div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>🏆 برترین رکوردهای بازیکنان</span>
+        <span id="myRankBadge">رتبه شما: -</span>
+      </div>
+      <div class="rank-list" id="startRankList">
+        <div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">آماده ثبت اولین رکورد! 🏀</div>
+      </div>
+      <div id="guestWarningStart" class="guest-note hidden">
+        ⚠️ برای ثبت رکورد در جدول رنکینگ، از طریق دکمه کانال بله وارد شوید.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn" type="button" onclick="startGame()">شروع مسابقه</button>
+    <div class="channel-tag">🎮 اختصاصی کانال @gamee_balee</div>
+  </div>
+
+  <!-- صفحه پایان بازی -->
+  <div id="gameOverScreen" class="overlay hidden">
+    <div class="title" style="color:#ff4d6d;">پایان وقت! ⏱️</div>
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="finalScore">0</div>
+        <div class="stat-lbl">امتیاز این دست</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="bestScore" style="color:#ffbe0b;">0</div>
+        <div class="stat-lbl">بهترین رکورد شما</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span>🏆 جدول نفرات برتر</span>
+        <span id="myRankBadgeEnd">رتبه شما: -</span>
+      </div>
+      <div class="rank-list" id="endRankList"></div>
+      <div id="guestWarningEnd" class="guest-note hidden">
+        ⚠️ امتیاز مهمان در جدول عمومی ثبت نمی‌شود.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="restartBtn" type="button" onclick="startGame()">🔄 بازی مجدد</button>
+    <button class="btn btn-share" id="shareBtn" type="button" onclick="shareRecord()">📤 کل‌کل و ارسال رکورد به دوستان</button>
+    <div class="channel-tag">🎮 اختصاصی کانال @gamee_balee</div>
+  </div>
+
+  <script>
+    if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        this.beginPath();
+        this.moveTo(x + r, y);
+        this.arcTo(x + w, y, x + w, y + h, r);
+        this.arcTo(x + w, y + h, x, y + h, r);
+        this.arcTo(x, y + h, x, y, r);
+        this.arcTo(x, y, x + w, y, r);
+        this.closePath();
+        return this;
+      };
+    }
+
+    var memoryStorage = {};
+    function safeGetItem(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch (e) {
+        return memoryStorage[key] || null;
+      }
+    }
+    function safeSetItem(key, val) {
+      memoryStorage[key] = val;
+      try {
+        window.localStorage.setItem(key, val);
+      } catch (e) {}
+    }
+
+    var BOT_USERNAME = "basket_pro_game_bot";
+    var CHANNEL_ID = "@gamee_balee";
+    var LEADERBOARD_API_URL = "";
+
+    var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
+    if (webapp) {
+      try {
+        webapp.ready();
+        webapp.expand();
+      } catch (e) {}
+    }
+
+    var rawUser = webapp && webapp.initDataUnsafe && webapp.initDataUnsafe.user ? webapp.initDataUnsafe.user : null;
+    var isAuthenticated = Boolean(rawUser && rawUser.id);
+    var currentUser = isAuthenticated
+      ? {
+          id: String(rawUser.id),
+          name: [rawUser.first_name, rawUser.last_name].filter(Boolean).join(" ") || rawUser.username || "بازیکن بله",
+          photo: rawUser.photo_url || ""
+        }
+      : {
+          id: "guest",
+          name: "بازیکن مهمان",
+          photo: ""
+        };
+
+    var STORAGE_KEY = "basket_pro_leaderboard_v1";
+    var LOCAL_BEST_KEY = "basket_pro_my_best_v1";
+
+    function getLocalBest() {
+      return Number(safeGetItem(LOCAL_BEST_KEY) || 0);
+    }
+
+    function setLocalBest(val) {
+      if (val > getLocalBest()) {
+        safeSetItem(LOCAL_BEST_KEY, String(val));
+      }
+    }
+
+    async function loadLeaderboard() {
+      if (LEADERBOARD_API_URL) {
+        try {
+          var res = await fetch(LEADERBOARD_API_URL);
+          if (res.ok) {
+            var data = await res.json();
+            if (Array.isArray(data)) return data;
+          }
+        } catch (e) {}
+      }
+      try {
+        var raw = JSON.parse(safeGetItem(STORAGE_KEY) || "[]");
+        return Array.isArray(raw) ? raw.filter(function(item) { return item && item.id && item.id !== "guest"; }) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function submitScore(newScore) {
+      setLocalBest(newScore);
+      if (!isAuthenticated || newScore <= 0) return;
+
+      if (LEADERBOARD_API_URL) {
+        try {
+          await fetch(LEADERBOARD_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: currentUser.id,
+              name: currentUser.name,
+              photo: currentUser.photo,
+              score: newScore
+            })
+          });
+        } catch (e) {}
+      }
+
+      var list = await loadLeaderboard();
+      var idx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
+      if (idx >= 0) {
+        if (newScore > list[idx].score) {
+          list[idx].score = newScore;
+          list[idx].name = currentUser.name;
+          list[idx].photo = currentUser.photo;
+        }
+      } else {
+        list.push({
+          id: currentUser.id,
+          name: currentUser.name,
+          photo: currentUser.photo,
+          score: newScore
+        });
+      }
+      list.sort(function(a, b) { return b.score - a.score; });
+      safeSetItem(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
+    }
+
+    async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
+      var listEl = document.getElementById(listElId);
+      var badgeEl = document.getElementById(badgeElId);
+      var guestWarn = document.getElementById(guestWarnId);
+      if (!listEl || !badgeEl) return;
+
+      if (guestWarn) {
+        if (!isAuthenticated) guestWarn.classList.remove("hidden");
+        else guestWarn.classList.add("hidden");
+      }
+
+      var list = await loadLeaderboard();
+      list.sort(function(a, b) { return b.score - a.score; });
+
+      if (isAuthenticated) {
+        var myIdx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
+        badgeEl.textContent = myIdx >= 0 ? "رتبه شما: #" + (myIdx + 1) : "رتبه شما: ثبت نشده";
+      } else {
+        badgeEl.textContent = "حالت مهمان";
+      }
+
+      if (list.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">هنوز رکوردی ثبت نشده! اولین نفر باش 🏀</div>';
+        return;
+      }
+
+      var medals = ["🥇", "🥈", "🥉"];
+      listEl.innerHTML = list.slice(0, 10).map(function(item, i) {
+        var isMe = isAuthenticated && String(item.id) === currentUser.id;
+        var rankIcon = medals[i] || ("#" + (i + 1));
+        var initial = (item.name || "ب").trim().charAt(0);
+        var avatarHtml = item.photo ? '<img src="' + item.photo + '" alt="" />' : '<span>' + initial + '</span>';
+        return '<div class="rank-item ' + (isMe ? "me" : "") + '">' +
+          '<div class="player-info">' +
+          '<span style="min-width:24px;font-weight:bold;">' + rankIcon + '</span>' +
+          '<div class="avatar">' + avatarHtml + '</div>' +
+          '<span>' + item.name + '</span>' +
+          '</div>' +
+          '<span class="score-pill">' + item.score + '</span>' +
+          '</div>';
+      }).join("");
+    }
+
+    var audioCtx = null;
+    var soundEnabled = true;
+
+    function initAudio() {
+      try {
+        if (!audioCtx) {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) audioCtx = new AC();
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+      } catch (e) {}
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      var btn = document.getElementById("soundToggle");
+      if (btn) btn.textContent = soundEnabled ? "🔊" : "🔇";
+    }
+
+    function playThrowSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(190, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(420, audioCtx.currentTime + 0.14);
+        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {}
+    }
+
+    function playRimSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(55, audioCtx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.32, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.13);
+      } catch (e) {}
+    }
+
+    function playSwishAndCheer(isClean) {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        var bufferSize = Math.floor(audioCtx.sampleRate * 0.25);
+        var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        var data = buffer.getChannelData(0);
+        for (var i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.08));
+        }
+        var noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        var filter = audioCtx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = 1800;
+        var nGain = audioCtx.createGain();
+        nGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        nGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.24);
+        noise.connect(filter);
+        filter.connect(nGain);
+        nGain.connect(audioCtx.destination);
+        noise.start();
+
+        var notes = isClean ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
+        notes.forEach(function(freq, idx) {
+          var osc = audioCtx.createOscillator();
+          var g = audioCtx.createGain();
+          osc.type = "triangle";
+          var t = audioCtx.currentTime + idx * 0.06;
+          osc.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(0.16, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+          osc.connect(g);
+          g.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.23);
+        });
+      } catch (e) {}
+    }
+
+    function playBuzzerSound() {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      try {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(115, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(98, audioCtx.currentTime + 0.75);
+        gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.8);
+      } catch (e) {}
+    }
+
+    var canvas = document.getElementById("gameCanvas");
+    var ctx = canvas.getContext("2d");
+
+    var W = window.innerWidth || document.documentElement.clientWidth || 360;
+    var H = window.innerHeight || document.documentElement.clientHeight || 640;
+    var dpr = 1;
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth || document.documentElement.clientWidth || 360;
+      H = window.innerHeight || document.documentElement.clientHeight || 640;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    var gameState = "MENU";
+    var score = 0;
+    var timeLeft = 21.0;
+    var lastTimestamp = 0;
+
+    var windDir = 1;
+    var windLevel = 1;
+
+    function floorY() { return H * 0.84; }
+    function playerPos() { return { x: Math.max(68, W * 0.16), y: floorY() }; }
+
+    var ball = {
+      x: 0,
+      y: 0,
+      vx: 0,
+      vy: 0,
+      r: 17,
+      rot: 0,
+      inFlight: false,
+      scoredThisShot: false,
+      touchedRim: false,
+      prevY: 0
+    };
+
+    var isDragging = false;
+    var dragStart = { x: 0, y: 0 };
+    var dragCurrent = { x: 0, y: 0 };
+    var aimVx = 0, aimVy = 0;
+
+    var playerJump = 0;
+    var netShake = 0;
+
+    var hoop = {
+      baseX: 0,
+      baseY: 0,
+      x: 0,
+      y: 0,
+      rimRadius: 31,
+      movePhase: 0
+    };
+
+    var floatingTexts = [];
+    var crowdFlashes = [];
+    var crowdPeople = [];
+
+    function initCrowd() {
+      crowdPeople = [];
+      var cols = Math.ceil(W / 24) + 2;
+      for (var row = 0; row < 3; row++) {
+        for (var c = 0; c < cols; c++) {
+          crowdPeople.push({
+            x: c * 24 + (row % 2) * 12,
+            y: H * 0.48 + row * 24,
+            tone: row === 0 ? "#4a0e17" : row === 1 ? "#631320" : "#7d1828",
+            bobOffset: Math.random() * Math.PI * 2
+          });
+        }
+      }
+    }
+    initCrowd();
+    window.addEventListener("resize", initCrowd);
+
+    function randomizeWind() {
+      windDir = Math.random() < 0.5 ? -1 : 1;
+      if (score < 2) {
+        windLevel = 1;
+      } else if (score < 6) {
+        windLevel = Math.floor(Math.random() * 2) + 1;
+      } else {
+        windLevel = Math.floor(Math.random() * 3) + 1;
+      }
+    }
+
+    function resetBall() {
+      var p = playerPos();
+      ball.inFlight = false;
+      ball.scoredThisShot = false;
+      ball.touchedRim = false;
+      ball.vx = 0;
+      ball.vy = 0;
+      ball.x = p.x + 18;
+      ball.y = p.y - 54;
+      ball.prevY = ball.y;
+    }
+
+    function resetHoopPosition() {
+      hoop.baseX = W * 0.78;
+      hoop.baseY = H * 0.43;
+      hoop.x = hoop.baseX;
+      hoop.y = hoop.baseY;
+    }
+
+    function startGame() {
+      initAudio();
+      resize();
+      initCrowd();
+      score = 0;
+      timeLeft = 21.0;
+      floatingTexts = [];
+      crowdFlashes = [];
+      hoop.movePhase = 0;
+      resetHoopPosition();
+      randomizeWind();
+      resetBall();
+      gameState = "PLAYING";
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("gameOverScreen").classList.add("hidden");
+      lastTimestamp = performance.now();
+    }
+
+    async function endGame() {
+      gameState = "GAMEOVER";
+      isDragging = false;
+      playBuzzerSound();
+      await submitScore(score);
+      document.getElementById("finalScore").textContent = score;
+      document.getElementById("bestScore").textContent = Math.max(score, getLocalBest());
+      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
+      document.getElementById("gameOverScreen").classList.remove("hidden");
+    }
+
+    function addFloatingText(text, x, y, color, size) {
+      floatingTexts.push({ text: text, x: x, y: y, color: color || "#ffbe0b", size: size || 20, life: 1.0 });
+    }
+
+    function updateAimVelocity() {
+      var dx = dragStart.x - dragCurrent.x;
+      var dy = dragStart.y - dragCurrent.y;
+      var dist = Math.hypot(dx, dy);
+      if (dist < 12) {
+        aimVx = 0;
+        aimVy = 0;
+        return;
+      }
+      var pullX = dx;
+      var pullY = dy;
+      if (dragCurrent.x > dragStart.x + 15 && dragCurrent.y < dragStart.y - 15) {
+        pullX = dragCurrent.x - dragStart.x;
+        pullY = dragCurrent.y - dragStart.y;
+      }
+      var power = Math.min(Math.hypot(pullX, pullY), 210);
+      var angle = Math.atan2(pullY, pullX);
+      var speed = 340 + power * 3.1;
+      aimVx = Math.cos(angle) * speed;
+      aimVy = Math.sin(angle) * speed;
+      if (aimVx < 140) aimVx = 140;
+      if (aimVy > -260) aimVy = -260;
+    }
+
+    function getPointerPos(e) {
+      var t = (e.touches && e.touches.length) ? e.touches[0] : e;
+      return { x: t.clientX, y: t.clientY };
+    }
+
+    function onStartAim(e) {
+      if (gameState !== "PLAYING" || ball.inFlight) return;
+      initAudio();
+      isDragging = true;
+      dragStart = getPointerPos(e);
+      dragCurrent = { x: dragStart.x, y: dragStart.y };
+      aimVx = 0;
+      aimVy = 0;
+    }
+
+    function onMoveAim(e) {
+      if (!isDragging || gameState !== "PLAYING") return;
+      dragCurrent = getPointerPos(e);
+      updateAimVelocity();
+    }
+
+    function onReleaseAim() {
+      if (!isDragging) return;
+      isDragging = false;
+      if (gameState !== "PLAYING" || ball.inFlight) return;
+      if (Math.hypot(aimVx, aimVy) > 250) {
+        ball.inFlight = true;
+        ball.vx = aimVx;
+        ball.vy = aimVy;
+        playerJump = 1.0;
+        playThrowSound();
+      }
+    }
+
+    canvas.addEventListener("pointerdown", onStartAim);
+    window.addEventListener("pointermove", onMoveAim);
+    window.addEventListener("pointerup", onReleaseAim);
+    window.addEventListener("pointercancel", onReleaseAim);
+
+    canvas.addEventListener("touchstart", onStartAim, { passive: true });
+    window.addEventListener("touchmove", onMoveAim, { passive: true });
+    window.addEventListener("touchend", onReleaseAim);
+
+    function collideCirclePoint(px, py, bounce) {
+      bounce = bounce || 0.68;
+      var dx = ball.x - px;
+      var dy = ball.y - py;
+      var dist = Math.hypot(dx, dy);
+      if (dist < ball.r + 3 && dist > 0.001) {
+        var nx = dx / dist;
+        var ny = dy / dist;
+        ball.x = px + nx * (ball.r + 3.2);
+        ball.y = py + ny * (ball.r + 3.2);
+        var dot = ball.vx * nx + ball.vy * ny;
+        if (dot < 0) {
+          ball.vx = (ball.vx - 2 * dot * nx) * bounce;
+          ball.vy = (ball.vy - 2 * dot * ny) * bounce;
+          ball.touchedRim = true;
+          playRimSound();
+        }
+      }
+    }
+
+    function update(dt) {
+      if (Math.random() < 0.07) {
+        crowdFlashes.push({
+          x: Math.random() * W,
+          y: H * (0.45 + Math.random() * 0.16),
+          life: 1.0
+        });
+      }
+      crowdFlashes.forEach(function(f) { f.life -= dt * 4.5; });
+      crowdFlashes = crowdFlashes.filter(function(f) { return f.life > 0; });
+
+      floatingTexts.forEach(function(ft) {
+        ft.y -= 42 * dt;
+        ft.life -= dt * 0.95;
+      });
+      floatingTexts = floatingTexts.filter(function(ft) { return ft.life > 0; });
+
+      if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.2);
+      if (netShake > 0) netShake = Math.max(0, netShake - dt * 3.0);
+
+      if (gameState !== "PLAYING") return;
+
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        endGame();
+        return;
+      }
+
+      hoop.baseX = W * 0.78;
+      hoop.baseY = H * 0.43;
+      if (score >= 2) {
+        var speedMult = Math.min(1 + (score - 2) * 0.14, 2.5);
+        hoop.movePhase += dt * 1.5 * speedMult;
+        var ampY = Math.min(28 + (score - 2) * 6, H * 0.15);
+        var ampX = score >= 5 ? Math.min((score - 4) * 5, W * 0.08) : 0;
+        hoop.y = hoop.baseY + Math.sin(hoop.movePhase) * ampY;
+        hoop.x = hoop.baseX + Math.cos(hoop.movePhase * 0.75) * ampX;
+      } else {
+        hoop.x = hoop.baseX;
+        hoop.y = hoop.baseY;
+      }
+
+      if (!ball.inFlight) {
+        var p = playerPos();
+        ball.x = p.x + 18;
+        ball.y = p.y - 54 + (isDragging ? 7 : 0);
+        return;
+      }
+
+      var gravity = 980;
+      var windAccel = windDir * windLevel * 125;
+      ball.prevY = ball.y;
+      ball.vx += windAccel * dt;
+      ball.vy += gravity * dt;
+      ball.x += ball.vx * dt;
+      ball.y += ball.vy * dt;
+      ball.rot += (ball.vx * 0.015) * dt;
+
+      var boardX = hoop.x + hoop.rimRadius + 8;
+      var boardTop = hoop.y - 68;
+      var boardBottom = hoop.y + 18;
+      if (
+        ball.x + ball.r > boardX &&
+        ball.x - ball.r < boardX + 10 &&
+        ball.y > boardTop &&
+        ball.y < boardBottom
+      ) {
+        if (ball.vx > 0) {
+          ball.x = boardX - ball.r;
+          ball.vx = -ball.vx * 0.62;
+          ball.touchedRim = true;
+          playRimSound();
+        }
+      }
+
+      var leftRimX = hoop.x - hoop.rimRadius;
+      var rightRimX = hoop.x + hoop.rimRadius;
+      collideCirclePoint(leftRimX, hoop.y);
+      collideCirclePoint(rightRimX, hoop.y);
+
+      if (
+        !ball.scoredThisShot &&
+        ball.vy > 0 &&
+        ball.prevY <= hoop.y &&
+        ball.y >= hoop.y &&
+        ball.x > leftRimX + 4 &&
+        ball.x < rightRimX - 4
+      ) {
+        ball.scoredThisShot = true;
+        score += 1;
+        netShake = 1.0;
+        var isClean = !ball.touchedRim;
+        var bonusSec = isClean ? 6 : 3;
+        timeLeft = Math.min(60, timeLeft + bonusSec);
+        playSwishAndCheer(isClean);
+        addFloatingText("+" + bonusSec + " SEC", hoop.x - 10, hoop.y - 45, "#2ecc71", 21);
+        if (isClean) {
+          addFloatingText("CLEAN SHOT!", hoop.x - 10, hoop.y - 72, "#ffbe0b", 18);
+        }
+        randomizeWind();
+      }
+
+      if (ball.y > floorY() + 30 || ball.x > W + 70 || ball.x < -70) {
+        resetBall();
+      }
+    }
+
+    function drawArena() {
+      var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+      bgGrad.addColorStop(0, "#3b0912");
+      bgGrad.addColorStop(0.55, "#6b1220");
+      bgGrad.addColorStop(1, "#2b070d");
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.strokeStyle = "rgba(25, 4, 8, 0.55)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (var x = 0; x < W; x += 65) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + 32, 46);
+        ctx.lineTo(x + 65, 0);
+      }
+      ctx.stroke();
+
+      var t = performance.now() * 0.004;
+      crowdPeople.forEach(function(p) {
+        var bob = Math.sin(t + p.bobOffset) * (gameState === "PLAYING" && netShake > 0 ? 5 : 1.5);
+        ctx.fillStyle = p.tone;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y + bob, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillRect(p.x - 10, p.y + 8 + bob, 20, 22);
+      });
+
+      crowdFlashes.forEach(function(f) {
+        var rad = 16 * f.life;
+        var g = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, rad);
+        g.addColorStop(0, "rgba(255,255,255," + f.life + ")");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      var bannerY = floorY() - 34;
+      ctx.fillStyle = "#1d3557";
+      ctx.fillRect(0, bannerY, W, 34);
+      ctx.fillStyle = "#f1faee";
+      for (var bx = 14; bx < W; bx += 120) {
+        ctx.fillRect(bx, bannerY + 6, 86, 22);
+        ctx.fillStyle = "#e63946";
+        ctx.font = "bold 11px Tahoma";
+        ctx.fillText("BASKET PRO", bx + 10, bannerY + 21);
+        ctx.fillStyle = "#f1faee";
+      }
+
+      var floorGrad = ctx.createLinearGradient(0, floorY(), 0, H);
+      floorGrad.addColorStop(0, "#d97724");
+      floorGrad.addColorStop(1, "#8c430e");
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, floorY(), W, H - floorY());
+
+      ctx.strokeStyle = "rgba(90, 35, 5, 0.35)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, floorY() + 18);
+      ctx.lineTo(W, floorY() + 18);
+      ctx.stroke();
+    }
+
+    function drawScoreboardAndWind() {
+      var boxX = 18;
+      var boxY = 58;
+      var boxW = 128;
+      var boxH = 88;
+
+      ctx.fillStyle = "rgba(18, 4, 8, 0.78)";
+      ctx.strokeStyle = "rgba(255, 190, 11, 0.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(boxX, boxY, boxW, boxH, 12);
+      ctx.fill();
+      ctx.stroke();
+
+      var secText = String(Math.ceil(timeLeft)).padStart(2, "0");
+      ctx.fillStyle = timeLeft <= 5 ? "#ff4d6d" : "#ffffff";
+      ctx.font = "900 34px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(secText, boxX + boxW / 2, boxY + 38);
+
+      var arrowY = boxY + 66;
+      var centerX = boxX + boxW / 2;
+      for (var i = 0; i < 3; i++) {
+        var active = i < windLevel;
+        ctx.fillStyle = active ? "#ffbe0b" : "rgba(255, 255, 255, 0.16)";
+        var offset = (i - 1) * 24;
+        var ax = centerX + offset;
+        ctx.beginPath();
+        if (windDir === 1) {
+          ctx.moveTo(ax - 7, arrowY - 7);
+          ctx.lineTo(ax + 7, arrowY);
+          ctx.lineTo(ax - 7, arrowY + 7);
+        } else {
+          ctx.moveTo(ax + 7, arrowY - 7);
+          ctx.lineTo(ax - 7, arrowY);
+          ctx.lineTo(ax + 7, arrowY + 7);
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "rgba(18, 4, 8, 0.72)";
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 48, 16, 96, 44, 12);
+      ctx.fill();
+      ctx.fillStyle = "#ffbe0b";
+      ctx.font = "900 26px Tahoma";
+      ctx.fillText(String(score), W / 2, 47);
+      ctx.textAlign = "start";
+    }
+
+    function drawPlayer() {
+      var p = playerPos();
+      var jumpOffset = Math.sin(playerJump * Math.PI) * 26;
+      var crouch = isDragging && !ball.inFlight ? 6 : 0;
+      var baseY = p.y - jumpOffset;
+
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + 4, 22, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#f1c27d";
+      ctx.lineWidth = 7;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(p.x - 6, baseY - 26 + crouch);
+      ctx.lineTo(p.x - 10, baseY - 4);
+      ctx.moveTo(p.x + 6, baseY - 26 + crouch);
+      ctx.lineTo(p.x + 10, baseY - 4);
+      ctx.stroke();
+
+      ctx.fillStyle = "#e63946";
+      ctx.fillRect(p.x - 12, baseY - 36 + crouch, 24, 15);
+
+      ctx.fillStyle = "#ffbe0b";
+      ctx.beginPath();
+      ctx.roundRect(p.x - 13, baseY - 64 + crouch, 26, 30, 6);
+      ctx.fill();
+
+      ctx.fillStyle = "#800f2f";
+      ctx.font = "bold 12px Tahoma";
+      ctx.fillText("7", p.x - 4, baseY - 45 + crouch);
+
+      var headY = baseY - 76 + crouch;
+      ctx.fillStyle = "#f1c27d";
+      ctx.beginPath();
+      ctx.arc(p.x, headY, 11, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#1d1e22";
+      for (var a = Math.PI; a <= Math.PI * 2.1; a += 0.45) {
+        ctx.beginPath();
+        ctx.arc(p.x + Math.cos(a) * 10, headY + Math.sin(a) * 10 - 2, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#e63946";
+      ctx.fillRect(p.x - 11, headY - 5, 22, 4);
+
+      ctx.strokeStyle = "#f1c27d";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 6, baseY - 58 + crouch);
+      if (ball.inFlight) {
+        ctx.lineTo(p.x + 22, baseY - 78);
+      } else {
+        ctx.lineTo(ball.x - 6, ball.y + 4);
+      }
+      ctx.stroke();
+    }
+
+    function drawHoop() {
+      var boardX = hoop.x + hoop.rimRadius + 8;
+      var boardTop = hoop.y - 68;
+
+      ctx.fillStyle = "#2b2d42";
+      ctx.fillRect(boardX + 10, hoop.y - 16, W - boardX, 12);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#111111";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(boardX, boardTop, 10, 86, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      var leftX = hoop.x - hoop.rimRadius + 3;
+      var rightX = hoop.x + hoop.rimRadius - 3;
+      var sway = Math.sin(netShake * Math.PI * 4) * 8 * netShake;
+      var netH = 42;
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 2;
+      var cols = 5;
+      for (var i = 0; i <= cols; i++) {
+        var t = i / cols;
+        var topX = leftX + (rightX - leftX) * t;
+        var botX = leftX + 8 + (rightX - leftX - 16) * t + sway;
+        ctx.beginPath();
+        ctx.moveTo(topX, hoop.y + 2);
+        ctx.lineTo(botX, hoop.y + netH);
+        ctx.stroke();
+      }
+      for (var r = 1; r <= 3; r++) {
+        var rt = r / 3;
+        var y = hoop.y + netH * rt;
+        var inset = rt * 8;
+        ctx.beginPath();
+        ctx.moveTo(leftX + inset + sway * rt, y);
+        ctx.lineTo(rightX - inset + sway * rt, y);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#ff5400";
+      ctx.lineWidth = 6;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(hoop.x - hoop.rimRadius, hoop.y);
+      ctx.lineTo(hoop.x + hoop.rimRadius, hoop.y);
+      ctx.stroke();
+    }
+
+    function drawAimDots() {
+      if (!isDragging || ball.inFlight || Math.hypot(aimVx, aimVy) < 250) return;
+      var gravity = 980;
+      for (var i = 1; i <= 14; i++) {
+        var t = i * 0.045;
+        var px = ball.x + aimVx * t;
+        var py = ball.y + aimVy * t + 0.5 * gravity * t * t;
+        if (py > floorY()) break;
+        ctx.fillStyle = "rgba(255, 255, 255, " + (1 - i / 16) + ")";
+        ctx.beginPath();
+        ctx.arc(px, py, Math.max(2.2, 5 - i * 0.2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawBall() {
+      ctx.save();
+      ctx.translate(ball.x, ball.y);
+      ctx.rotate(ball.rot);
+
+      var g = ctx.createRadialGradient(-5, -5, 2, 0, 0, ball.r);
+      g.addColorStop(0, "#ff9e00");
+      g.addColorStop(0.7, "#ff5400");
+      g.addColorStop(1, "#9e2a2b");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(0, 0, ball.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#2b0902";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(-ball.r, 0);
+      ctx.lineTo(ball.r, 0);
+      ctx.moveTo(0, -ball.r);
+      ctx.lineTo(0, ball.r);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawFloatingTexts() {
+      floatingTexts.forEach(function(ft) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, ft.life);
+        ctx.fillStyle = ft.color;
+        ctx.font = "900 " + ft.size + "px Tahoma";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.7)";
+        ctx.shadowBlur = 6;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      });
+    }
+
+    function loop(now) {
+      var dt = Math.min((now - lastTimestamp) / 1000, 0.05);
+      lastTimestamp = now;
+
+      update(dt);
+
+      ctx.clearRect(0, 0, W, H);
+      drawArena();
+      drawScoreboardAndWind();
+      drawAimDots();
+      drawPlayer();
+      drawHoop();
+      drawBall();
+      drawFloatingTexts();
+
+      requestAnimationFrame(loop);
+    }
+
+    function shareRecord() {
+      var best = Math.max(score, getLocalBest());
+      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
+      var shareText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇\n" + gameLink + "\n\nکانال بازی‌ها: " + CHANNEL_ID;
+      if (navigator.share) {
+        navigator.share({ text: shareText }).catch(function() {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareText);
+        alert("متن چالش و لینک بازی کپی شد! در چت یا گروه بله پیست کن.");
+      }
+    }
+
+    window.addEventListener("load", function() {
+      resize();
+      initCrowd();
+      resetHoopPosition();
+      resetBall();
+      renderLeaderboard("startRankList", "myRankBadge", "guestWarningStart");
+      lastTimestamp = performance.now();
+      requestAnimationFrame(loop);
+    });
+  </script>
+</body>
+</html>
