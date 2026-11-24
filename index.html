@@ -682,7 +682,6 @@
     var reloadTimer = 0;
     var playerJump = 0;
 
-    // نشانه گیری حالت اول با تسلط بیشتر و حرکت روان
     var isDragging = false;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
@@ -779,26 +778,14 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // حالت اول: محاسبه نقطه فرود نسبت به سبد (بدون پرش و با تسلط بیشتر روی چپ/راست و بالا/پایین)
+    // نشانه‌گیری مستقیم، پیوسته و بدون پرش:
+    // راست/چپ انگشت = راست/چپ خط‌چین | بالا/پایین انگشت = پایین/بالا رفتن خط‌چین
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
 
-      // پشتیبانی از هر دو حالت کشیدن انگشت: به سمت جلو/بالا یا کشیدن به عقب/پایین
-      var moveX = 0;
-      var moveY = 0;
-
-      if (dx > -15 && dy < 35) {
-        moveX = dx;
-        moveY = dy;
-      } else {
-        moveX = -dx;
-        moveY = -dy;
-      }
-
-      // تسلط بیشتر و روان روی جابه‌جایی نقطه فرود حول سبد (بدون پرش ناگهانی)
-      var targetOffsetX = Math.max(-220, Math.min(260, moveX * 1.8));
-      var targetOffsetY = Math.max(-220, Math.min(180, moveY * 1.5));
+      var targetOffsetX = Math.max(-240, Math.min(280, dx * 1.65));
+      var targetOffsetY = Math.max(-220, Math.min(220, -dy * 1.45));
 
       var hp = handPos();
       var aimTargetX = hoop.targetX + targetOffsetX;
@@ -1468,7 +1455,6 @@
       ctx.restore();
     }
 
-    // خط‌چین حالت اول با تسلط نرم و کامل
     function drawAimArc() {
       if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
