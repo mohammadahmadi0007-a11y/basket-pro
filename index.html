@@ -19,7 +19,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #2b070d;
+      background: #3d060c;
     }
     #gameCanvas {
       position: fixed;
@@ -31,6 +31,61 @@
       z-index: 1;
       touch-action: none;
     }
+    .top-hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(15, 2, 4, 0.75), rgba(15, 2, 4, 0));
+    }
+    .score-display {
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 900;
+      direction: ltr;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+    .hud-actions {
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .hud-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      background: rgba(20, 4, 8, 0.65);
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .hint-pill {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 2, 4, 0.72);
+      border: 1px solid rgba(255, 190, 11, 0.4);
+      color: #ffdd67;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      z-index: 9;
+      pointer-events: none;
+      white-space: nowrap;
+    }
     .overlay {
       position: fixed;
       top: 0;
@@ -39,39 +94,64 @@
       bottom: 0;
       width: 100%;
       height: 100%;
-      background: rgba(18, 4, 8, 0.92);
+      background: rgba(22, 3, 6, 0.9);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 18px;
-      z-index: 20;
+      z-index: 30;
       color: #fff;
     }
     .hidden {
       display: none !important;
     }
-    .title {
-      font-size: 30px;
+    .banner-title {
+      width: 100%;
+      max-width: 380px;
+      background: #d93848;
+      color: #fff;
+      text-align: center;
+      font-size: 28px;
       font-weight: 900;
-      color: #ffbe0b;
-      text-shadow: 0 4px 16px rgba(255, 190, 11, 0.45);
-      margin-bottom: 6px;
+      padding: 10px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
       letter-spacing: 1px;
     }
-    .subtitle {
-      font-size: 13px;
-      color: #f3d5d8;
-      margin-bottom: 16px;
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 380px;
+      margin-bottom: 12px;
+    }
+    .stat-box {
+      flex: 1;
+      background: rgba(48, 8, 14, 0.96);
+      border: 1px solid rgba(255, 190, 11, 0.3);
+      border-radius: 14px;
+      padding: 10px;
       text-align: center;
+    }
+    .stat-val {
+      font-size: 26px;
+      font-weight: 900;
+      color: #ffbe0b;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      color: #f3c6cb;
+      margin-top: 2px;
     }
     .card {
       width: 100%;
       max-width: 380px;
-      background: rgba(42, 10, 16, 0.96);
-      border: 1px solid rgba(255, 190, 11, 0.35);
-      border-radius: 18px;
-      padding: 14px;
+      background: rgba(42, 7, 13, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 12px;
       margin-bottom: 14px;
     }
     .card-header {
@@ -81,15 +161,15 @@
       font-size: 13px;
       color: #ffbe0b;
       font-weight: bold;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     }
     .rank-list {
       display: flex;
       flex-direction: column;
-      gap: 7px;
-      max-height: 200px;
+      gap: 6px;
+      max-height: 195px;
       overflow-y: auto;
     }
     .rank-item {
@@ -97,8 +177,8 @@
       align-items: center;
       justify-content: space-between;
       background: rgba(255, 255, 255, 0.08);
-      padding: 8px 12px;
-      border-radius: 11px;
+      padding: 7px 10px;
+      border-radius: 10px;
       font-size: 13px;
     }
     .rank-item.me {
@@ -111,8 +191,8 @@
       gap: 8px;
     }
     .avatar {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       background: #ff6b35;
       display: flex;
@@ -142,41 +222,16 @@
       padding: 6px;
       border-radius: 8px;
     }
-    .stats-row {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 380px;
-      margin-bottom: 12px;
-    }
-    .stat-box {
-      flex: 1;
-      background: rgba(42, 10, 16, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 14px;
-      padding: 10px;
-      text-align: center;
-    }
-    .stat-val {
-      font-size: 24px;
-      font-weight: 900;
-      color: #2ecc71;
-    }
-    .stat-lbl {
-      font-size: 11px;
-      color: #d8b4b8;
-      margin-top: 2px;
-    }
     .btn {
       width: 100%;
       max-width: 380px;
-      padding: 15px;
+      padding: 14px;
       border: none;
       border-radius: 14px;
       font-size: 16px;
       font-weight: 900;
       cursor: pointer;
-      margin-bottom: 10px;
+      margin-bottom: 9px;
       touch-action: manipulation;
     }
     .btn:active {
@@ -193,69 +248,54 @@
       font-size: 14px;
     }
     .channel-tag {
-      margin-top: 4px;
+      margin-top: 2px;
       font-size: 12px;
       color: #e0aeb4;
       background: rgba(255, 255, 255, 0.08);
-      padding: 6px 14px;
+      padding: 5px 14px;
       border-radius: 20px;
-    }
-    #soundToggle {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 15;
-      background: rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #fff;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <button id="soundToggle" type="button" onclick="toggleSound()">🔊</button>
+  <div class="top-hud">
+    <div class="score-display">Score: <span id="hudScore">0</span></div>
+    <div class="hud-actions">
+      <button class="hud-btn" type="button" onclick="openRankModal()" title="جدول برترین‌ها">🏆</button>
+      <button class="hud-btn" id="soundToggle" type="button" onclick="toggleSound()" title="صدا">🔊</button>
+    </div>
+  </div>
+
+  <div class="hint-pill" id="hintPill">انگشتت رو بکش و رها کن تا شوت بزنی 🏀</div>
   <canvas id="gameCanvas"></canvas>
 
-  <!-- صفحه شروع -->
-  <div id="startScreen" class="overlay">
-    <div class="title">🏀 BASKET PRO</div>
-    <div class="subtitle">انگشتت رو بکش و رها کن! حواست به جهت و قدرت باد زیر تایمر باشه</div>
-
+  <!-- پنجره رنکینگ در حین بازی -->
+  <div id="rankModal" class="overlay hidden">
+    <div class="banner-title" style="font-size:22px;">🏆 برترین بازیکنان</div>
     <div class="card">
       <div class="card-header">
-        <span>🏆 برترین رکوردهای بازیکنان</span>
-        <span id="myRankBadge">رتبه شما: -</span>
+        <span>جدول رنکینگ</span>
+        <span id="modalRankBadge">رتبه شما: -</span>
       </div>
-      <div class="rank-list" id="startRankList">
-        <div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">آماده ثبت اولین رکورد! 🏀</div>
-      </div>
-      <div id="guestWarningStart" class="guest-note hidden">
-        ⚠️ برای ثبت رکورد در جدول رنکینگ، از طریق دکمه کانال بله وارد شوید.
+      <div class="rank-list" id="modalRankList"></div>
+      <div id="guestWarnModal" class="guest-note hidden">
+        ⚠️ برای ثبت رکورد، از دکمه کانال بله وارد شوید.
       </div>
     </div>
-
-    <button class="btn btn-primary" id="startBtn" type="button" onclick="startGame()">شروع مسابقه</button>
-    <div class="channel-tag">🎮 اختصاصی کانال @gamee_balee</div>
+    <button class="btn btn-primary" type="button" onclick="closeRankModal()">ادامه بازی</button>
   </div>
 
   <!-- صفحه پایان بازی -->
   <div id="gameOverScreen" class="overlay hidden">
-    <div class="title" style="color:#ff4d6d;">پایان وقت! ⏱️</div>
+    <div class="banner-title">TIME'S UP! ⏱️</div>
     <div class="stats-row">
       <div class="stat-box">
-        <div class="stat-val" id="finalScore">0</div>
-        <div class="stat-lbl">امتیاز این دست</div>
+        <div class="stat-val" id="finalScore" style="color:#2ecc71;">0</div>
+        <div class="stat-lbl">امتیاز شما</div>
       </div>
       <div class="stat-box">
-        <div class="stat-val" id="bestScore" style="color:#ffbe0b;">0</div>
-        <div class="stat-lbl">بهترین رکورد شما</div>
+        <div class="stat-val" id="bestScore">0</div>
+        <div class="stat-lbl">بهترین رکورد</div>
       </div>
     </div>
 
@@ -270,8 +310,8 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" id="restartBtn" type="button" onclick="startGame()">🔄 بازی مجدد</button>
-    <button class="btn btn-share" id="shareBtn" type="button" onclick="shareRecord()">📤 کل‌کل و ارسال رکورد به دوستان</button>
+    <button class="btn btn-primary" type="button" onclick="resetGame()">🔄 بازی مجدد</button>
+    <button class="btn btn-share" type="button" onclick="shareRecord()">📤 کل‌کل و ارسال رکورد به دوستان</button>
     <div class="channel-tag">🎮 اختصاصی کانال @gamee_balee</div>
   </div>
 
@@ -291,31 +331,25 @@
       };
     }
 
-    var memoryStorage = {};
-    function safeGetItem(key) {
-      try {
-        return window.localStorage.getItem(key);
-      } catch (e) {
-        return memoryStorage[key] || null;
-      }
+    var memStore = {};
+    function safeGet(k) {
+      try { return window.localStorage.getItem(k); } catch (e) { return memStore[k] || null; }
     }
-    function safeSetItem(key, val) {
-      memoryStorage[key] = val;
-      try {
-        window.localStorage.setItem(key, val);
-      } catch (e) {}
+    function safeSet(k, v) {
+      memStore[k] = v;
+      try { window.localStorage.setItem(k, v); } catch (e) {}
     }
 
+    // ==========================================
+    // ۱. تنظیمات اختصاصی ربات و استاندارد بله
+    // ==========================================
     var BOT_USERNAME = "basket_pro_game_bot";
     var CHANNEL_ID = "@gamee_balee";
     var LEADERBOARD_API_URL = "";
 
     var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
     if (webapp) {
-      try {
-        webapp.ready();
-        webapp.expand();
-      } catch (e) {}
+      try { webapp.ready(); webapp.expand(); } catch (e) {}
     }
 
     var rawUser = webapp && webapp.initDataUnsafe && webapp.initDataUnsafe.user ? webapp.initDataUnsafe.user : null;
@@ -326,24 +360,13 @@
           name: [rawUser.first_name, rawUser.last_name].filter(Boolean).join(" ") || rawUser.username || "بازیکن بله",
           photo: rawUser.photo_url || ""
         }
-      : {
-          id: "guest",
-          name: "بازیکن مهمان",
-          photo: ""
-        };
+      : { id: "guest", name: "بازیکن مهمان", photo: "" };
 
-    var STORAGE_KEY = "basket_pro_leaderboard_v1";
-    var LOCAL_BEST_KEY = "basket_pro_my_best_v1";
+    var STORAGE_KEY = "basket_pro_leaderboard_v2";
+    var LOCAL_BEST_KEY = "basket_pro_my_best_v2";
 
-    function getLocalBest() {
-      return Number(safeGetItem(LOCAL_BEST_KEY) || 0);
-    }
-
-    function setLocalBest(val) {
-      if (val > getLocalBest()) {
-        safeSetItem(LOCAL_BEST_KEY, String(val));
-      }
-    }
+    function getLocalBest() { return Number(safeGet(LOCAL_BEST_KEY) || 0); }
+    function setLocalBest(val) { if (val > getLocalBest()) safeSet(LOCAL_BEST_KEY, String(val)); }
 
     async function loadLeaderboard() {
       if (LEADERBOARD_API_URL) {
@@ -356,32 +379,23 @@
         } catch (e) {}
       }
       try {
-        var raw = JSON.parse(safeGetItem(STORAGE_KEY) || "[]");
+        var raw = JSON.parse(safeGet(STORAGE_KEY) || "[]");
         return Array.isArray(raw) ? raw.filter(function(item) { return item && item.id && item.id !== "guest"; }) : [];
-      } catch (e) {
-        return [];
-      }
+      } catch (e) { return []; }
     }
 
     async function submitScore(newScore) {
       setLocalBest(newScore);
       if (!isAuthenticated || newScore <= 0) return;
-
       if (LEADERBOARD_API_URL) {
         try {
           await fetch(LEADERBOARD_API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: currentUser.id,
-              name: currentUser.name,
-              photo: currentUser.photo,
-              score: newScore
-            })
+            body: JSON.stringify({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore })
           });
         } catch (e) {}
       }
-
       var list = await loadLeaderboard();
       var idx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
       if (idx >= 0) {
@@ -391,15 +405,10 @@
           list[idx].photo = currentUser.photo;
         }
       } else {
-        list.push({
-          id: currentUser.id,
-          name: currentUser.name,
-          photo: currentUser.photo,
-          score: newScore
-        });
+        list.push({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore });
       }
       list.sort(function(a, b) { return b.score - a.score; });
-      safeSetItem(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
+      safeSet(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
     }
 
     async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
@@ -445,6 +454,17 @@
       }).join("");
     }
 
+    function openRankModal() {
+      renderLeaderboard("modalRankList", "modalRankBadge", "guestWarnModal");
+      document.getElementById("rankModal").classList.remove("hidden");
+    }
+    function closeRankModal() {
+      document.getElementById("rankModal").classList.add("hidden");
+    }
+
+    // ==========================================
+    // ۲. افکت‌های صوتی واقعی (Web Audio API)
+    // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
 
@@ -454,16 +474,13 @@
           var AC = window.AudioContext || window.webkitAudioContext;
           if (AC) audioCtx = new AC();
         }
-        if (audioCtx && audioCtx.state === "suspended") {
-          audioCtx.resume();
-        }
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
       } catch (e) {}
     }
 
     function toggleSound() {
       soundEnabled = !soundEnabled;
-      var btn = document.getElementById("soundToggle");
-      if (btn) btn.textContent = soundEnabled ? "🔊" : "🔇";
+      document.getElementById("soundToggle").textContent = soundEnabled ? "🔊" : "🔇";
     }
 
     function playThrowSound() {
@@ -472,16 +489,14 @@
       if (!audioCtx) return;
       try {
         var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(190, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(420, audioCtx.currentTime + 0.14);
-        gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.15);
+        var g = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.12);
+        g.gain.setValueAtTime(0.16, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.13);
       } catch (e) {}
     }
 
@@ -491,90 +506,92 @@
       if (!audioCtx) return;
       try {
         var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(55, audioCtx.currentTime + 0.12);
-        gain.gain.setValueAtTime(0.32, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.13);
+        var g = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(195, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(68, audioCtx.currentTime + 0.11);
+        g.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.12);
       } catch (e) {}
     }
 
-    function playSwishAndCheer(isClean) {
+    function playScoreSound(isClean) {
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
       try {
-        var bufferSize = Math.floor(audioCtx.sampleRate * 0.25);
-        var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        var data = buffer.getChannelData(0);
-        for (var i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.08));
+        // صدای عبور توپ از تور زنجیری
+        var len = Math.floor(audioCtx.sampleRate * 0.28);
+        var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+        var d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) {
+          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.09));
         }
-        var noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        var filter = audioCtx.createBiquadFilter();
-        filter.type = "bandpass";
-        filter.frequency.value = 1800;
-        var nGain = audioCtx.createGain();
-        nGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-        nGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.24);
-        noise.connect(filter);
-        filter.connect(nGain);
-        nGain.connect(audioCtx.destination);
-        noise.start();
+        var src = audioCtx.createBufferSource();
+        src.buffer = buf;
+        var flt = audioCtx.createBiquadFilter();
+        flt.type = "bandpass";
+        flt.frequency.value = 2400;
+        var ng = audioCtx.createGain();
+        ng.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        ng.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.27);
+        src.connect(flt); flt.connect(ng); ng.connect(audioCtx.destination);
+        src.start();
 
-        var notes = isClean ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
-        notes.forEach(function(freq, idx) {
-          var osc = audioCtx.createOscillator();
-          var g = audioCtx.createGain();
-          osc.type = "triangle";
-          var t = audioCtx.currentTime + idx * 0.06;
-          osc.frequency.setValueAtTime(freq, t);
-          g.gain.setValueAtTime(0.16, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-          osc.connect(g);
-          g.connect(audioCtx.destination);
-          osc.start(t);
-          osc.stop(t + 0.23);
-        });
+        // صدای تشویق تماشاچی‌ها
+        var clen = Math.floor(audioCtx.sampleRate * 0.65);
+        var cbuf = audioCtx.createBuffer(1, clen, audioCtx.sampleRate);
+        var cd = cbuf.getChannelData(0);
+        for (var j = 0; j < clen; j++) {
+          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.12)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.28));
+          cd[j] = (Math.random() * 2 - 1) * env;
+        }
+        var csrc = audioCtx.createBufferSource();
+        csrc.buffer = cbuf;
+        var cflt = audioCtx.createBiquadFilter();
+        cflt.type = "lowpass";
+        cflt.frequency.value = isClean ? 1400 : 950;
+        var cg = audioCtx.createGain();
+        cg.gain.setValueAtTime(isClean ? 0.32 : 0.2, audioCtx.currentTime);
+        cg.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.64);
+        csrc.connect(cflt); cflt.connect(cg); cg.connect(audioCtx.destination);
+        csrc.start();
       } catch (e) {}
     }
 
-    function playBuzzerSound() {
+    function playBuzzer() {
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
       try {
         var osc = audioCtx.createOscillator();
-        var gain = audioCtx.createGain();
+        var g = audioCtx.createGain();
         osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(115, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(98, audioCtx.currentTime + 0.75);
-        gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.8);
+        osc.frequency.setValueAtTime(110, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(95, audioCtx.currentTime + 0.8);
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.85);
       } catch (e) {}
     }
 
+    // ==========================================
+    // ۳. موتور گرافیک و فیزیک ۲.۵ بعدی مطابق ویدئو
+    // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
 
-    var W = window.innerWidth || document.documentElement.clientWidth || 360;
-    var H = window.innerHeight || document.documentElement.clientHeight || 640;
+    var W = window.innerWidth || 360;
+    var H = window.innerHeight || 640;
     var dpr = 1;
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = window.innerWidth || document.documentElement.clientWidth || 360;
-      H = window.innerHeight || document.documentElement.clientHeight || 640;
+      W = window.innerWidth || 360;
+      H = window.innerHeight || 640;
       canvas.width = W * dpr;
       canvas.height = H * dpr;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -582,625 +599,790 @@
     window.addEventListener("resize", resize);
     resize();
 
-    var gameState = "MENU";
+    // وضعیت‌های بازی: READY (شروع با اولین لمس) | PLAYING | GAMEOVER
+    var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
-    var lastTimestamp = 0;
+    var lastTime = 0;
 
-    var windDir = 1;
-    var windLevel = 1;
+    // باد زیر اسکوربورد: جهت (-1 چپ، 1 راست) و شدت (0 تا 3)
+    var windDir = -1;
+    var windLevel = 0;
 
-    function floorY() { return H * 0.84; }
-    function playerPos() { return { x: Math.max(68, W * 0.16), y: floorY() }; }
+    // مختصات کلیدی صحنه مطابق فریم‌های ویدئو
+    function courtFloorY() { return H * 0.765; }
+    function playerX() { return Math.max(46, W * 0.115); }
+    function handPos() {
+      var jumpOff = Math.sin(playerJump * Math.PI) * 18;
+      return { x: playerX() + 14, y: courtFloorY() - 56 - jumpOff };
+    }
 
-    var ball = {
-      x: 0,
-      y: 0,
-      vx: 0,
-      vy: 0,
-      r: 17,
-      rot: 0,
-      inFlight: false,
-      scoredThisShot: false,
-      touchedRim: false,
-      prevY: 0
-    };
-
-    var isDragging = false;
-    var dragStart = { x: 0, y: 0 };
-    var dragCurrent = { x: 0, y: 0 };
-    var aimVx = 0, aimVy = 0;
-
-    var playerJump = 0;
-    var netShake = 0;
-
+    // حلقه و تخته روبه‌روی بازیکن
     var hoop = {
       baseX: 0,
       baseY: 0,
       x: 0,
       y: 0,
-      rimRadius: 31,
-      movePhase: 0
+      boardW: 94,
+      boardH: 64,
+      rimRx: 21,
+      rimRy: 5,
+      moveTime: 0,
+      netAnim: 0
     };
 
-    var floatingTexts = [];
-    var crowdFlashes = [];
-    var crowdPeople = [];
+    // آرایه توپ‌های فعال (امکان شوت‌های پشت‌سرهم مثل ویدئو)
+    var activeBalls = [];
+    var hasBallInHand = true;
+    var reloadTimer = 0;
+    var playerJump = 0;
 
-    function initCrowd() {
-      crowdPeople = [];
-      var cols = Math.ceil(W / 24) + 2;
-      for (var row = 0; row < 3; row++) {
-        for (var c = 0; c < cols; c++) {
-          crowdPeople.push({
-            x: c * 24 + (row % 2) * 12,
-            y: H * 0.48 + row * 24,
-            tone: row === 0 ? "#4a0e17" : row === 1 ? "#631320" : "#7d1828",
-            bobOffset: Math.random() * Math.PI * 2
+    // نشانه گیری
+    var isDragging = false;
+    var dragStart = { x: 0, y: 0 };
+    var dragCurr = { x: 0, y: 0 };
+    var aimVx = 0;
+    var aimVy = 0;
+    var aimFlightT = 0.85;
+
+    // متن‌های شناور (+3 SEC, +6 SEC, CLEAN SHOT) و فلاش تماشاچی‌ها
+    var popups = [];
+    var flashes = [];
+    var crowdRows = [];
+
+    function buildCrowd() {
+      crowdRows = [];
+      var step = 20;
+      var count = Math.ceil(W / step) + 3;
+      var colors = ["#570c14", "#660f18", "#75121d", "#4a0910"];
+      for (var r = 0; r < 4; r++) {
+        for (var c = 0; c < count; c++) {
+          crowdRows.push({
+            x: c * step + (r % 2) * 10 - 10,
+            y: H * 0.44 + r * 22,
+            r: 8.5 + (r * 0.4),
+            color: colors[r % colors.length],
+            phase: Math.random() * Math.PI * 2
           });
         }
       }
     }
-    initCrowd();
-    window.addEventListener("resize", initCrowd);
+    buildCrowd();
+    window.addEventListener("resize", buildCrowd);
 
-    function randomizeWind() {
+    function updateWindForScore() {
+      if (score < 3) {
+        windLevel = 0; // در ۳ امتیاز اول باد خاموش است (دقیقاً مثل ویدئو)
+        return;
+      }
       windDir = Math.random() < 0.5 ? -1 : 1;
-      if (score < 2) {
-        windLevel = 1;
-      } else if (score < 6) {
-        windLevel = Math.floor(Math.random() * 2) + 1;
+      if (score < 6) {
+        windLevel = Math.floor(Math.random() * 2) + 1; // درجه ۱ یا ۲
       } else {
-        windLevel = Math.floor(Math.random() * 3) + 1;
+        windLevel = Math.floor(Math.random() * 3) + 1; // درجه ۱ تا ۳
       }
     }
 
-    function resetBall() {
-      var p = playerPos();
-      ball.inFlight = false;
-      ball.scoredThisShot = false;
-      ball.touchedRim = false;
-      ball.vx = 0;
-      ball.vy = 0;
-      ball.x = p.x + 18;
-      ball.y = p.y - 54;
-      ball.prevY = ball.y;
-    }
-
-    function resetHoopPosition() {
-      hoop.baseX = W * 0.78;
-      hoop.baseY = H * 0.43;
-      hoop.x = hoop.baseX;
-      hoop.y = hoop.baseY;
-    }
-
-    function startGame() {
-      initAudio();
-      resize();
-      initCrowd();
+    function resetGame() {
       score = 0;
       timeLeft = 21.0;
-      floatingTexts = [];
-      crowdFlashes = [];
-      hoop.movePhase = 0;
-      resetHoopPosition();
-      randomizeWind();
-      resetBall();
-      gameState = "PLAYING";
-      document.getElementById("startScreen").classList.add("hidden");
+      windLevel = 0;
+      activeBalls = [];
+      popups = [];
+      hasBallInHand = true;
+      reloadTimer = 0;
+      playerJump = 0;
+      hoop.moveTime = 0;
+      hoop.baseX = W * 0.46;
+      hoop.baseY = H * 0.37;
+      hoop.x = hoop.baseX;
+      hoop.y = hoop.baseY;
+      gameState = "READY";
+      document.getElementById("hudScore").textContent = "0";
       document.getElementById("gameOverScreen").classList.add("hidden");
-      lastTimestamp = performance.now();
+      document.getElementById("hintPill").classList.remove("hidden");
     }
 
-    async function endGame() {
+    async function triggerGameOver() {
       gameState = "GAMEOVER";
       isDragging = false;
-      playBuzzerSound();
+      playBuzzer();
       await submitScore(score);
-      document.getElementById("finalScore").textContent = score;
-      document.getElementById("bestScore").textContent = Math.max(score, getLocalBest());
+      document.getElementById("finalScore").textContent = String(score);
+      document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
       await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
       document.getElementById("gameOverScreen").classList.remove("hidden");
     }
 
-    function addFloatingText(text, x, y, color, size) {
-      floatingTexts.push({ text: text, x: x, y: y, color: color || "#ffbe0b", size: size || 20, life: 1.0 });
+    function spawnPopup(lines, x, y) {
+      popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    function updateAimVelocity() {
-      var dx = dragStart.x - dragCurrent.x;
-      var dy = dragStart.y - dragCurrent.y;
+    // محاسبه قوس پرتاب دقیق به سمت حلقه
+    function computeAim() {
+      var dx = dragCurr.x - dragStart.x;
+      var dy = dragCurr.y - dragStart.y;
       var dist = Math.hypot(dx, dy);
-      if (dist < 12) {
+      if (dist < 10) {
         aimVx = 0;
         aimVy = 0;
         return;
       }
-      var pullX = dx;
-      var pullY = dy;
-      if (dragCurrent.x > dragStart.x + 15 && dragCurrent.y < dragStart.y - 15) {
-        pullX = dragCurrent.x - dragStart.x;
-        pullY = dragCurrent.y - dragStart.y;
+
+      // پشتیبانی از هر دو حالت: کشیدن انگشت به سمت حلقه یا کشیدن به عقب (تیروکمان)
+      var targetOffsetX = 0;
+      var arcHeightBoost = 0;
+
+      if (dx > 12 || dy < -12) {
+        // کشیدن به جلو/بالا
+        targetOffsetX = (dx - 90) * 1.45;
+        arcHeightBoost = Math.max(0, -dy) * 0.65;
+      } else {
+        // کشیدن به عقب/پایین
+        targetOffsetX = (-dx - 90) * 1.45;
+        arcHeightBoost = Math.max(0, dy) * 0.65;
       }
-      var power = Math.min(Math.hypot(pullX, pullY), 210);
-      var angle = Math.atan2(pullY, pullX);
-      var speed = 340 + power * 3.1;
-      aimVx = Math.cos(angle) * speed;
-      aimVy = Math.sin(angle) * speed;
-      if (aimVx < 140) aimVx = 140;
-      if (aimVy > -260) aimVy = -260;
+
+      var hp = handPos();
+      var aimTargetX = hoop.x + Math.max(-160, Math.min(200, targetOffsetX));
+      var aimTargetY = hoop.y + 4;
+
+      aimFlightT = 0.86;
+      var gravity = 980;
+      // سرعت اولیه بدون باد (باد هنگام پرواز توپ را منحرف می‌کند)
+      aimVx = (aimTargetX - hp.x) / aimFlightT;
+      aimVy = (aimTargetY - hp.y - 0.5 * gravity * aimFlightT * aimFlightT) / aimFlightT - arcHeightBoost * 0.35;
+      if (aimVy > -380) aimVy = -380;
     }
 
-    function getPointerPos(e) {
+    function getPos(e) {
       var t = (e.touches && e.touches.length) ? e.touches[0] : e;
       return { x: t.clientX, y: t.clientY };
     }
 
-    function onStartAim(e) {
-      if (gameState !== "PLAYING" || ball.inFlight) return;
+    function handleStart(e) {
+      if (gameState === "GAMEOVER") return;
+      if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       initAudio();
+      if (gameState === "READY") {
+        gameState = "PLAYING";
+        document.getElementById("hintPill").classList.add("hidden");
+      }
+      if (!hasBallInHand) return;
       isDragging = true;
-      dragStart = getPointerPos(e);
-      dragCurrent = { x: dragStart.x, y: dragStart.y };
-      aimVx = 0;
-      aimVy = 0;
+      dragStart = getPos(e);
+      dragCurr = { x: dragStart.x, y: dragStart.y };
+      // مقدار اولیه قوس به سمت حلقه به محض لمس صفحه
+      var hp = handPos();
+      aimFlightT = 0.86;
+      aimVx = (hoop.x - hp.x) / aimFlightT;
+      aimVy = (hoop.y - hp.y - 0.5 * 980 * aimFlightT * aimFlightT) / aimFlightT;
     }
 
-    function onMoveAim(e) {
-      if (!isDragging || gameState !== "PLAYING") return;
-      dragCurrent = getPointerPos(e);
-      updateAimVelocity();
+    function handleMove(e) {
+      if (!isDragging) return;
+      dragCurr = getPos(e);
+      computeAim();
     }
 
-    function onReleaseAim() {
+    function handleEnd() {
       if (!isDragging) return;
       isDragging = false;
-      if (gameState !== "PLAYING" || ball.inFlight) return;
-      if (Math.hypot(aimVx, aimVy) > 250) {
-        ball.inFlight = true;
-        ball.vx = aimVx;
-        ball.vy = aimVy;
-        playerJump = 1.0;
-        playThrowSound();
-      }
+      if (!hasBallInHand || gameState !== "PLAYING") return;
+      if (Math.hypot(aimVx, aimVy) < 120) return;
+
+      var hp = handPos();
+      activeBalls.push({
+        x: hp.x,
+        y: hp.y,
+        vx: aimVx,
+        vy: aimVy,
+        prevY: hp.y,
+        r: 15,
+        rot: 0,
+        age: 0,
+        scored: false,
+        touchedRim: false,
+        fallingThroughNet: false
+      });
+
+      hasBallInHand = false;
+      reloadTimer = 0.28; // شارژ سریع توپ بعدی در دست بازیکن
+      playerJump = 1.0;
+      playThrowSound();
     }
 
-    canvas.addEventListener("pointerdown", onStartAim);
-    window.addEventListener("pointermove", onMoveAim);
-    window.addEventListener("pointerup", onReleaseAim);
-    window.addEventListener("pointercancel", onReleaseAim);
+    canvas.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleEnd);
+    window.addEventListener("pointercancel", handleEnd);
+    canvas.addEventListener("touchstart", handleStart, { passive: true });
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleEnd);
 
-    canvas.addEventListener("touchstart", onStartAim, { passive: true });
-    window.addEventListener("touchmove", onMoveAim, { passive: true });
-    window.addEventListener("touchend", onReleaseAim);
-
-    function collideCirclePoint(px, py, bounce) {
-      bounce = bounce || 0.68;
-      var dx = ball.x - px;
-      var dy = ball.y - py;
-      var dist = Math.hypot(dx, dy);
-      if (dist < ball.r + 3 && dist > 0.001) {
-        var nx = dx / dist;
-        var ny = dy / dist;
-        ball.x = px + nx * (ball.r + 3.2);
-        ball.y = py + ny * (ball.r + 3.2);
-        var dot = ball.vx * nx + ball.vy * ny;
-        if (dot < 0) {
-          ball.vx = (ball.vx - 2 * dot * nx) * bounce;
-          ball.vy = (ball.vy - 2 * dot * ny) * bounce;
-          ball.touchedRim = true;
-          playRimSound();
-        }
-      }
-    }
-
+    // ==========================================
+    // ۴. به‌روزرسانی منطق بازی
+    // ==========================================
     function update(dt) {
-      if (Math.random() < 0.07) {
-        crowdFlashes.push({
+      // فلاش دوربین تماشاچی‌ها
+      if (Math.random() < 0.08) {
+        flashes.push({
           x: Math.random() * W,
-          y: H * (0.45 + Math.random() * 0.16),
+          y: H * (0.43 + Math.random() * 0.22),
           life: 1.0
         });
       }
-      crowdFlashes.forEach(function(f) { f.life -= dt * 4.5; });
-      crowdFlashes = crowdFlashes.filter(function(f) { return f.life > 0; });
+      flashes.forEach(function(f) { f.life -= dt * 4.2; });
+      flashes = flashes.filter(function(f) { return f.life > 0; });
 
-      floatingTexts.forEach(function(ft) {
-        ft.y -= 42 * dt;
-        ft.life -= dt * 0.95;
+      popups.forEach(function(p) {
+        p.y -= 28 * dt;
+        p.life -= dt * 0.9;
       });
-      floatingTexts = floatingTexts.filter(function(ft) { return ft.life > 0; });
+      popups = popups.filter(function(p) { return p.life > 0; });
 
-      if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.2);
-      if (netShake > 0) netShake = Math.max(0, netShake - dt * 3.0);
+      if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.8);
+      if (hoop.netAnim > 0) hoop.netAnim = Math.max(0, hoop.netAnim - dt * 3.2);
 
-      if (gameState !== "PLAYING") return;
-
-      timeLeft -= dt;
-      if (timeLeft <= 0) {
-        timeLeft = 0;
-        endGame();
-        return;
+      if (!hasBallInHand) {
+        reloadTimer -= dt;
+        if (reloadTimer <= 0) hasBallInHand = true;
       }
 
-      hoop.baseX = W * 0.78;
-      hoop.baseY = H * 0.43;
-      if (score >= 2) {
-        var speedMult = Math.min(1 + (score - 2) * 0.14, 2.5);
-        hoop.movePhase += dt * 1.5 * speedMult;
-        var ampY = Math.min(28 + (score - 2) * 6, H * 0.15);
-        var ampX = score >= 5 ? Math.min((score - 4) * 5, W * 0.08) : 0;
-        hoop.y = hoop.baseY + Math.sin(hoop.movePhase) * ampY;
-        hoop.x = hoop.baseX + Math.cos(hoop.movePhase * 0.75) * ampX;
+      // حرکت آرام و پیوسته تخته و حلقه (مطابق ویدئو)
+      hoop.baseX = W * 0.46;
+      hoop.baseY = H * 0.37;
+      if (gameState === "PLAYING") {
+        timeLeft -= dt;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          triggerGameOver();
+          return;
+        }
+
+        if (score >= 1) {
+          var speed = Math.min(1.0 + score * 0.12, 2.3);
+          hoop.moveTime += dt * speed;
+          var rangeX = Math.min(W * 0.19, 25 + score * 8);
+          var rangeY = score >= 4 ? Math.min(H * 0.07, (score - 3) * 6) : 6;
+          hoop.x = hoop.baseX + Math.sin(hoop.moveTime * 1.15) * rangeX;
+          hoop.y = hoop.baseY + Math.cos(hoop.moveTime * 1.6) * rangeY;
+        } else {
+          hoop.x = hoop.baseX;
+          hoop.y = hoop.baseY;
+        }
       } else {
         hoop.x = hoop.baseX;
         hoop.y = hoop.baseY;
       }
 
-      if (!ball.inFlight) {
-        var p = playerPos();
-        ball.x = p.x + 18;
-        ball.y = p.y - 54 + (isDragging ? 7 : 0);
-        return;
-      }
-
+      // فیزیک توپ‌های در حال پرواز
       var gravity = 980;
-      var windAccel = windDir * windLevel * 125;
-      ball.prevY = ball.y;
-      ball.vx += windAccel * dt;
-      ball.vy += gravity * dt;
-      ball.x += ball.vx * dt;
-      ball.y += ball.vy * dt;
-      ball.rot += (ball.vx * 0.015) * dt;
+      var windForce = windDir * windLevel * 115; // اثر باد روی محور افقی
 
-      var boardX = hoop.x + hoop.rimRadius + 8;
-      var boardTop = hoop.y - 68;
-      var boardBottom = hoop.y + 18;
-      if (
-        ball.x + ball.r > boardX &&
-        ball.x - ball.r < boardX + 10 &&
-        ball.y > boardTop &&
-        ball.y < boardBottom
-      ) {
-        if (ball.vx > 0) {
-          ball.x = boardX - ball.r;
-          ball.vx = -ball.vx * 0.62;
-          ball.touchedRim = true;
-          playRimSound();
+      for (var i = activeBalls.length - 1; i >= 0; i--) {
+        var b = activeBalls[i];
+        b.age += dt;
+        b.prevY = b.y;
+        b.vx += windForce * dt;
+        b.vy += gravity * dt;
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.rot += (b.vx * 0.015) * dt;
+
+        // برخورد با لبه‌های چپ و راست حلقه فقط وقتی توپ در حال پایین آمدن است
+        var rimY = hoop.y + 10;
+        var leftRimX = hoop.x - hoop.rimRx;
+        var rightRimX = hoop.x + hoop.rimRx;
+
+        if (!b.scored && b.vy > 0 && Math.abs(b.y - rimY) < 13) {
+          var distL = Math.hypot(b.x - leftRimX, b.y - rimY);
+          var distR = Math.hypot(b.x - rightRimX, b.y - rimY);
+
+          if (distL < 9) {
+            b.touchedRim = true;
+            b.vx = Math.abs(b.vx) * 0.45 + 35;
+            b.vy = -Math.abs(b.vy) * 0.45;
+            playRimSound();
+          } else if (distR < 9) {
+            b.touchedRim = true;
+            b.vx = -Math.abs(b.vx) * 0.45 - 35;
+            b.vy = -Math.abs(b.vy) * 0.45;
+            playRimSound();
+          }
         }
-      }
 
-      var leftRimX = hoop.x - hoop.rimRadius;
-      var rightRimX = hoop.x + hoop.rimRadius;
-      collideCirclePoint(leftRimX, hoop.y);
-      collideCirclePoint(rightRimX, hoop.y);
+        // تشخیص گل شدن (عبور مرکز توپ از دهانه حلقه به سمت پایین)
+        if (
+          !b.scored &&
+          b.vy > 0 &&
+          b.prevY <= rimY &&
+          b.y >= rimY &&
+          b.x >= leftRimX + 2 &&
+          b.x <= rightRimX - 2
+        ) {
+          b.scored = true;
+          b.fallingThroughNet = true;
+          b.vx *= 0.25;
+          b.x = hoop.x + (b.x - hoop.x) * 0.35;
+          score += 1;
+          document.getElementById("hudScore").textContent = String(score);
+          hoop.netAnim = 1.0;
 
-      if (
-        !ball.scoredThisShot &&
-        ball.vy > 0 &&
-        ball.prevY <= hoop.y &&
-        ball.y >= hoop.y &&
-        ball.x > leftRimX + 4 &&
-        ball.x < rightRimX - 4
-      ) {
-        ball.scoredThisShot = true;
-        score += 1;
-        netShake = 1.0;
-        var isClean = !ball.touchedRim;
-        var bonusSec = isClean ? 6 : 3;
-        timeLeft = Math.min(60, timeLeft + bonusSec);
-        playSwishAndCheer(isClean);
-        addFloatingText("+" + bonusSec + " SEC", hoop.x - 10, hoop.y - 45, "#2ecc71", 21);
-        if (isClean) {
-          addFloatingText("CLEAN SHOT!", hoop.x - 10, hoop.y - 72, "#ffbe0b", 18);
+          var isClean = !b.touchedRim;
+          var addSec = isClean ? 6 : 3;
+          timeLeft = Math.min(60, timeLeft + addSec);
+          playScoreSound(isClean);
+
+          if (isClean) {
+            spawnPopup(["+" + addSec + " SEC", "CLEAN", "SHOT"], hoop.x + 56, hoop.y + 8);
+          } else {
+            spawnPopup(["+" + addSec + " SEC"], hoop.x + 58, hoop.y + 12);
+          }
+
+          updateWindForScore();
         }
-        randomizeWind();
-      }
 
-      if (ball.y > floorY() + 30 || ball.x > W + 70 || ball.x < -70) {
-        resetBall();
+        // برخورد با کف زمین و قل خوردن
+        var floor = courtFloorY() - 8;
+        if (b.y > floor) {
+          b.y = floor;
+          if (Math.abs(b.vy) > 90) {
+            b.vy = -b.vy * 0.52;
+            b.vx *= 0.78;
+          } else {
+            b.vy = 0;
+            b.vx *= 0.92;
+          }
+        }
+
+        if (b.age > 3.2 || b.x < -80 || b.x > W + 80) {
+          activeBalls.splice(i, 1);
+        }
       }
     }
 
-    function drawArena() {
-      var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-      bgGrad.addColorStop(0, "#3b0912");
-      bgGrad.addColorStop(0.55, "#6b1220");
-      bgGrad.addColorStop(1, "#2b070d");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
+    // ==========================================
+    // ۵. رندر دقیق صحنه مطابق فریم‌های ویدئو
+    // ==========================================
+    function drawArenaBackground() {
+      // دیوار قرمز تیره سالن
+      var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
+      grad.addColorStop(0, "#47070e");
+      grad.addColorStop(0.45, "#8f0e1c");
+      grad.addColorStop(1, "#5c0912");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, courtFloorY());
 
-      ctx.strokeStyle = "rgba(25, 4, 8, 0.55)";
+      // سازه‌های فلزی و خرپای سقف (دقیقاً مثل بالای ویدئو)
+      ctx.fillStyle = "#520911";
+      ctx.fillRect(0, 0, W, H * 0.14);
+      ctx.strokeStyle = "#3b050b";
       ctx.lineWidth = 3;
       ctx.beginPath();
-      for (var x = 0; x < W; x += 65) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x + 32, 46);
-        ctx.lineTo(x + 65, 0);
+      ctx.moveTo(0, H * 0.14);
+      ctx.lineTo(W, H * 0.14);
+      for (var tx = 0; tx < W; tx += 70) {
+        ctx.moveTo(tx, 10);
+        ctx.lineTo(tx + 35, H * 0.14);
+        ctx.lineTo(tx + 70, 10);
       }
       ctx.stroke();
 
-      var t = performance.now() * 0.004;
-      crowdPeople.forEach(function(p) {
-        var bob = Math.sin(t + p.bobOffset) * (gameState === "PLAYING" && netShake > 0 ? 5 : 1.5);
-        ctx.fillStyle = p.tone;
+      // تماشاچی‌های سالن
+      var now = performance.now() * 0.005;
+      crowdRows.forEach(function(c) {
+        var cheer = hoop.netAnim > 0 ? Math.sin(now * 3 + c.phase) * 4 : Math.sin(now + c.phase) * 1;
+        ctx.fillStyle = c.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y + bob, 9, 0, Math.PI * 2);
+        ctx.arc(c.x, c.y + cheer, c.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillRect(p.x - 10, p.y + 8 + bob, 20, 22);
+        ctx.beginPath();
+        ctx.roundRect(c.x - c.r - 1, c.y + c.r - 1 + cheer, (c.r + 1) * 2, 18, 6);
+        ctx.fill();
       });
 
-      crowdFlashes.forEach(function(f) {
-        var rad = 16 * f.life;
-        var g = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, rad);
-        g.addColorStop(0, "rgba(255,255,255," + f.life + ")");
-        g.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = g;
+      // فلاش دوربین‌های سفید ستاره‌ای در بین تماشاچی‌ها
+      flashes.forEach(function(f) {
+        ctx.save();
+        ctx.globalAlpha = f.life;
+        var rad = 18 * f.life;
+        var rg = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, rad);
+        rg.addColorStop(0, "#ffffff");
+        rg.addColorStop(0.4, "rgba(255,255,255,0.6)");
+        rg.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = rg;
         ctx.beginPath();
         ctx.arc(f.x, f.y, rad, 0, Math.PI * 2);
         ctx.fill();
+
+        // خط نور افقی فلاش
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(f.x - rad * 1.4, f.y);
+        ctx.lineTo(f.x + rad * 1.4, f.y);
+        ctx.stroke();
+        ctx.restore();
       });
 
-      var bannerY = floorY() - 34;
-      ctx.fillStyle = "#1d3557";
-      ctx.fillRect(0, bannerY, W, 34);
-      ctx.fillStyle = "#f1faee";
-      for (var bx = 14; bx < W; bx += 120) {
-        ctx.fillRect(bx, bannerY + 6, 86, 22);
-        ctx.fillStyle = "#e63946";
-        ctx.font = "bold 11px Tahoma";
-        ctx.fillText("BASKET PRO", bx + 10, bannerY + 21);
-        ctx.fillStyle = "#f1faee";
+      // تابلوهای تبلیغاتی آبی و سفید کنار زمین (مشابه O2 SPORT در ویدئو)
+      var adH = 34;
+      var adY = courtFloorY() - adH;
+      ctx.fillStyle = "#1956a8";
+      ctx.fillRect(0, adY, W, adH);
+
+      var panelW = 148;
+      for (var px = 0; px < W + panelW; px += panelW) {
+        // قاب فلزی دور تابلو
+        ctx.strokeStyle = "#8aa8d6";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(px + 2, adY + 2, panelW - 4, adH - 4);
+
+        // بخش سفید سمت راست تابلو با نوشته SPORT
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(px + 52, adY + 4, panelW - 56, adH - 8);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "900 15px Tahoma";
+        ctx.fillText("O₂", px + 18, adY + 23);
+
+        ctx.fillStyle = "#1956a8";
+        ctx.font = "900 14px Tahoma";
+        ctx.fillText("SPORT", px + 64, adY + 23);
       }
 
-      var floorGrad = ctx.createLinearGradient(0, floorY(), 0, H);
-      floorGrad.addColorStop(0, "#d97724");
-      floorGrad.addColorStop(1, "#8c430e");
-      ctx.fillStyle = floorGrad;
-      ctx.fillRect(0, floorY(), W, H - floorY());
+      // کف‌پوش پارکت چوبی زمین
+      var floorTop = courtFloorY();
+      var fGrad = ctx.createLinearGradient(0, floorTop, 0, H);
+      fGrad.addColorStop(0, "#d46a22");
+      fGrad.addColorStop(0.35, "#b85416");
+      fGrad.addColorStop(1, "#6e2b08");
+      ctx.fillStyle = fGrad;
+      ctx.fillRect(0, floorTop, W, H - floorTop);
 
-      ctx.strokeStyle = "rgba(90, 35, 5, 0.35)";
+      // خطوط سفید و تیره کف زمین
+      ctx.strokeStyle = "rgba(255, 220, 180, 0.35)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(0, floorY() + 18);
-      ctx.lineTo(W, floorY() + 18);
+      ctx.moveTo(0, floorTop + 14);
+      ctx.lineTo(W, floorTop + 14);
       ctx.stroke();
+
+      // سایه تماشاچی‌های ردیف جلو در پایین‌ترین لبه صفحه
+      ctx.fillStyle = "#36070c";
+      for (var sx = 20; sx < W; sx += 95) {
+        ctx.beginPath();
+        ctx.arc(sx, H - 18, 24, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.roundRect(sx - 34, H - 6, 68, 30, 14);
+        ctx.fill();
+      }
     }
 
-    function drawScoreboardAndWind() {
-      var boxX = 18;
-      var boxY = 58;
-      var boxW = 128;
-      var boxH = 88;
+    function drawWallScoreboardAndWind() {
+      // اسکوربورد قرمز زاویه‌دار روی دیوار سمت چپ (دقیقاً مثل ویدئو)
+      var sbW = Math.min(138, W * 0.36);
+      var sbTop = H * 0.19;
+      var sbH = 122;
 
-      ctx.fillStyle = "rgba(18, 4, 8, 0.78)";
-      ctx.strokeStyle = "rgba(255, 190, 11, 0.45)";
+      ctx.save();
+      ctx.fillStyle = "#c92a38";
+      ctx.beginPath();
+      ctx.moveTo(0, sbTop);
+      ctx.lineTo(sbW, sbTop + 8);
+      ctx.lineTo(sbW - 6, sbTop + sbH - 6);
+      ctx.lineTo(0, sbTop + sbH);
+      ctx.closePath();
+      ctx.fill();
+
+      // کادر دیجیتال تایمر
+      var ledX = 14;
+      var ledY = sbTop + 34;
+      var ledW = sbW - 34;
+      var ledH = 44;
+
+      ctx.fillStyle = "#7a0c16";
+      ctx.strokeStyle = "#f2b8be";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(boxX, boxY, boxW, boxH, 12);
+      ctx.roundRect(ledX, ledY, ledW, ledH, 4);
       ctx.fill();
       ctx.stroke();
 
-      var secText = String(Math.ceil(timeLeft)).padStart(2, "0");
-      ctx.fillStyle = timeLeft <= 5 ? "#ff4d6d" : "#ffffff";
-      ctx.font = "900 34px monospace";
+      // عدد تایمر
+      var secVal = String(Math.ceil(timeLeft));
+      ctx.fillStyle = timeLeft <= 5 ? "#ffea00" : "#ffffff";
+      ctx.font = "900 30px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(secText, boxX + boxW / 2, boxY + 38);
+      ctx.fillText(secVal, ledX + ledW / 2, ledY + 32);
 
-      var arrowY = boxY + 66;
-      var centerX = boxX + boxW / 2;
+      // ۳ فلش زردرنگ باد زیر کادر تایمر
+      var arrowY = ledY + ledH + 17;
+      var centerX = ledX + ledW / 2;
       for (var i = 0; i < 3; i++) {
-        var active = i < windLevel;
-        ctx.fillStyle = active ? "#ffbe0b" : "rgba(255, 255, 255, 0.16)";
-        var offset = (i - 1) * 24;
-        var ax = centerX + offset;
+        // اگر باد به چپ باشد از راست به چپ روشن می‌شوند، اگر به راست باشد از چپ به راست
+        var isLit = false;
+        if (windLevel > 0) {
+          if (windDir === 1) isLit = i < windLevel;
+          else isLit = (2 - i) < windLevel;
+        }
+        ctx.fillStyle = isLit ? "#ffcf24" : "rgba(90, 8, 16, 0.45)";
+        var ax = centerX + (i - 1) * 20;
         ctx.beginPath();
         if (windDir === 1) {
-          ctx.moveTo(ax - 7, arrowY - 7);
-          ctx.lineTo(ax + 7, arrowY);
-          ctx.lineTo(ax - 7, arrowY + 7);
+          ctx.moveTo(ax - 6, arrowY - 6);
+          ctx.lineTo(ax + 6, arrowY);
+          ctx.lineTo(ax - 6, arrowY + 6);
         } else {
-          ctx.moveTo(ax + 7, arrowY - 7);
-          ctx.lineTo(ax - 7, arrowY);
-          ctx.lineTo(ax + 7, arrowY + 7);
+          ctx.moveTo(ax + 6, arrowY - 6);
+          ctx.lineTo(ax - 6, arrowY);
+          ctx.lineTo(ax + 6, arrowY + 6);
         }
         ctx.closePath();
         ctx.fill();
       }
-
-      ctx.fillStyle = "rgba(18, 4, 8, 0.72)";
-      ctx.beginPath();
-      ctx.roundRect(W / 2 - 48, 16, 96, 44, 12);
-      ctx.fill();
-      ctx.fillStyle = "#ffbe0b";
-      ctx.font = "900 26px Tahoma";
-      ctx.fillText(String(score), W / 2, 47);
-      ctx.textAlign = "start";
+      ctx.restore();
     }
 
-    function drawPlayer() {
-      var p = playerPos();
-      var jumpOffset = Math.sin(playerJump * Math.PI) * 26;
-      var crouch = isDragging && !ball.inFlight ? 6 : 0;
-      var baseY = p.y - jumpOffset;
+    function drawBackboardAndHoop() {
+      var bx = hoop.x - hoop.boardW / 2;
+      var by = hoop.y - hoop.boardH / 2;
 
-      ctx.fillStyle = "rgba(0,0,0,0.35)";
-      ctx.beginPath();
-      ctx.ellipse(p.x, p.y + 4, 22, 6, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // سایه ملایم پشت تخته
+      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      ctx.fillRect(bx + 4, by + 5, hoop.boardW, hoop.boardH);
 
-      ctx.strokeStyle = "#f1c27d";
-      ctx.lineWidth = 7;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(p.x - 6, baseY - 26 + crouch);
-      ctx.lineTo(p.x - 10, baseY - 4);
-      ctx.moveTo(p.x + 6, baseY - 26 + crouch);
-      ctx.lineTo(p.x + 10, baseY - 4);
-      ctx.stroke();
-
-      ctx.fillStyle = "#e63946";
-      ctx.fillRect(p.x - 12, baseY - 36 + crouch, 24, 15);
-
-      ctx.fillStyle = "#ffbe0b";
-      ctx.beginPath();
-      ctx.roundRect(p.x - 13, baseY - 64 + crouch, 26, 30, 6);
-      ctx.fill();
-
-      ctx.fillStyle = "#800f2f";
-      ctx.font = "bold 12px Tahoma";
-      ctx.fillText("7", p.x - 4, baseY - 45 + crouch);
-
-      var headY = baseY - 76 + crouch;
-      ctx.fillStyle = "#f1c27d";
-      ctx.beginPath();
-      ctx.arc(p.x, headY, 11, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#1d1e22";
-      for (var a = Math.PI; a <= Math.PI * 2.1; a += 0.45) {
-        ctx.beginPath();
-        ctx.arc(p.x + Math.cos(a) * 10, headY + Math.sin(a) * 10 - 2, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.fillStyle = "#e63946";
-      ctx.fillRect(p.x - 11, headY - 5, 22, 4);
-
-      ctx.strokeStyle = "#f1c27d";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(p.x + 6, baseY - 58 + crouch);
-      if (ball.inFlight) {
-        ctx.lineTo(p.x + 22, baseY - 78);
-      } else {
-        ctx.lineTo(ball.x - 6, ball.y + 4);
-      }
-      ctx.stroke();
-    }
-
-    function drawHoop() {
-      var boardX = hoop.x + hoop.rimRadius + 8;
-      var boardTop = hoop.y - 68;
-
-      ctx.fillStyle = "#2b2d42";
-      ctx.fillRect(boardX + 10, hoop.y - 16, W - boardX, 12);
-
-      ctx.fillStyle = "#ffffff";
+      // تخته سفید با کادر مشکی ضخیم
+      ctx.fillStyle = "#f8f9fa";
       ctx.strokeStyle = "#111111";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.roundRect(boardX, boardTop, 10, 86, 3);
+      ctx.rect(bx, by, hoop.boardW, hoop.boardH);
       ctx.fill();
       ctx.stroke();
 
-      var leftX = hoop.x - hoop.rimRadius + 3;
-      var rightX = hoop.x + hoop.rimRadius - 3;
-      var sway = Math.sin(netShake * Math.PI * 4) * 8 * netShake;
-      var netH = 42;
+      // مربع کوچک مشکی وسط تخته
+      var sqW = 34;
+      var sqH = 26;
+      ctx.strokeStyle = "#111111";
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.lineWidth = 2;
-      var cols = 5;
-      for (var i = 0; i <= cols; i++) {
-        var t = i / cols;
-        var topX = leftX + (rightX - leftX) * t;
-        var botX = leftX + 8 + (rightX - leftX - 16) * t + sway;
+      // تور مشکی زیر حلقه (مطابق ویدئو)
+      var rimY = hoop.y + 10;
+      var topL = hoop.x - hoop.rimRx + 2;
+      var topR = hoop.x + hoop.rimRx - 2;
+      var netH = 28;
+      var sway = Math.sin(hoop.netAnim * Math.PI * 4) * 6 * hoop.netAnim;
+
+      ctx.strokeStyle = "#141414";
+      ctx.lineWidth = 1.8;
+      var strands = 5;
+      for (var i = 0; i <= strands; i++) {
+        var t = i / strands;
+        var sx = topL + (topR - topL) * t;
+        var ex = topL + 5 + (topR - topL - 10) * t + sway;
         ctx.beginPath();
-        ctx.moveTo(topX, hoop.y + 2);
-        ctx.lineTo(botX, hoop.y + netH);
+        ctx.moveTo(sx, rimY);
+        ctx.lineTo(ex, rimY + netH);
         ctx.stroke();
       }
       for (var r = 1; r <= 3; r++) {
         var rt = r / 3;
-        var y = hoop.y + netH * rt;
-        var inset = rt * 8;
+        var ny = rimY + netH * rt;
+        var inset = rt * 5;
         ctx.beginPath();
-        ctx.moveTo(leftX + inset + sway * rt, y);
-        ctx.lineTo(rightX - inset + sway * rt, y);
+        ctx.moveTo(topL + inset + sway * rt, ny);
+        ctx.lineTo(topR - inset + sway * rt, ny);
         ctx.stroke();
       }
 
-      ctx.strokeStyle = "#ff5400";
-      ctx.lineWidth = 6;
-      ctx.lineCap = "round";
+      // حلقه نارنجی
+      ctx.strokeStyle = "#ff4500";
+      ctx.lineWidth = 4.5;
       ctx.beginPath();
-      ctx.moveTo(hoop.x - hoop.rimRadius, hoop.y);
-      ctx.lineTo(hoop.x + hoop.rimRadius, hoop.y);
+      ctx.ellipse(hoop.x, rimY, hoop.rimRx, hoop.rimRy, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    function drawAimDots() {
-      if (!isDragging || ball.inFlight || Math.hypot(aimVx, aimVy) < 250) return;
-      var gravity = 980;
-      for (var i = 1; i <= 14; i++) {
-        var t = i * 0.045;
-        var px = ball.x + aimVx * t;
-        var py = ball.y + aimVy * t + 0.5 * gravity * t * t;
-        if (py > floorY()) break;
-        ctx.fillStyle = "rgba(255, 255, 255, " + (1 - i / 16) + ")";
+    function drawPlayerCharacter() {
+      var px = playerX();
+      var floor = courtFloorY();
+      var jumpOff = Math.sin(playerJump * Math.PI) * 18;
+      var crouch = isDragging && hasBallInHand ? 4 : 0;
+      var y = floor - jumpOff;
+
+      // سایه روی پارکت
+      ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+      ctx.beginPath();
+      ctx.ellipse(px, floor + 2, 18, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // پاها و کفش‌های سفید
+      ctx.fillStyle = "#e09f67";
+      ctx.fillRect(px - 8, y - 24 + crouch, 6, 18 - crouch);
+      ctx.fillRect(px + 2, y - 24 + crouch, 6, 18 - crouch);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.roundRect(px - 9, y - 7, 10, 7, 3);
+      ctx.roundRect(px + 1, y - 7, 11, 7, 3);
+      ctx.fill();
+
+      // شورت قرمز
+      ctx.fillStyle = "#e63946";
+      ctx.beginPath();
+      ctx.roundRect(px - 10, y - 37 + crouch, 20, 15, 3);
+      ctx.fill();
+
+      // پیراهن زرد بسکتبال
+      ctx.fillStyle = "#ffbe0b";
+      ctx.beginPath();
+      ctx.roundRect(px - 10, y - 60 + crouch, 20, 25, 5);
+      ctx.fill();
+
+      // سر بازیکن
+      var headY = y - 70 + crouch;
+      ctx.fillStyle = "#e09f67";
+      ctx.beginPath();
+      ctx.arc(px, headY, 9.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // موهای فر پرپشت مشکی (مشابه کاراکتر ویدئو)
+      ctx.fillStyle = "#161618";
+      var curls = [
+        [-9, -3, 6], [-7, -9, 7], [0, -11, 7.5], [7, -9, 6.5],
+        [-11, 2, 5.5], [-4, -6, 6.5], [3, -6, 6]
+      ];
+      for (var c = 0; c < curls.length; c++) {
         ctx.beginPath();
-        ctx.arc(px, py, Math.max(2.2, 5 - i * 0.2), 0, Math.PI * 2);
+        ctx.arc(px + curls[c][0], headY + curls[c][1], curls[c][2], 0, Math.PI * 2);
         ctx.fill();
+      }
+
+      // هدبند قرمز
+      ctx.strokeStyle = "#e63946";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(px - 8, headY - 4);
+      ctx.lineTo(px + 9, headY - 2);
+      ctx.stroke();
+
+      // دست‌های بازیکن
+      ctx.strokeStyle = "#e09f67";
+      ctx.lineWidth = 5;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(px + 2, y - 54 + crouch);
+      if (hasBallInHand) {
+        ctx.lineTo(px + 13, y - 55 + crouch);
+      } else {
+        ctx.lineTo(px + 16, y - 72);
+      }
+      ctx.stroke();
+
+      // توپ در دست بازیکن
+      if (hasBallInHand) {
+        var hp = handPos();
+        drawSingleBall(hp.x, hp.y + crouch, 13.5, 0);
       }
     }
 
-    function drawBall() {
+    function drawSingleBall(x, y, r, rot) {
       ctx.save();
-      ctx.translate(ball.x, ball.y);
-      ctx.rotate(ball.rot);
+      ctx.translate(x, y);
+      ctx.rotate(rot);
 
-      var g = ctx.createRadialGradient(-5, -5, 2, 0, 0, ball.r);
-      g.addColorStop(0, "#ff9e00");
-      g.addColorStop(0.7, "#ff5400");
-      g.addColorStop(1, "#9e2a2b");
+      var g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 1, 0, 0, r);
+      g.addColorStop(0, "#ff9e1b");
+      g.addColorStop(0.65, "#f26419");
+      g.addColorStop(1, "#9e2a10");
       ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.arc(0, 0, ball.r, 0, Math.PI * 2);
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = "#2b0902";
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = "#2b0d04";
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.moveTo(-ball.r, 0);
-      ctx.lineTo(ball.r, 0);
-      ctx.moveTo(0, -ball.r);
-      ctx.lineTo(0, ball.r);
+      ctx.moveTo(-r, 0);
+      ctx.lineTo(r, 0);
+      ctx.moveTo(0, -r);
+      ctx.lineTo(0, r);
       ctx.stroke();
 
       ctx.restore();
     }
 
-    function drawFloatingTexts() {
-      floatingTexts.forEach(function(ft) {
+    function drawAimArc() {
+      if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
+      var hp = handPos();
+      var gravity = 980;
+      var dots = 15;
+      for (var i = 1; i <= dots; i++) {
+        var t = (aimFlightT * 0.92) * (i / dots);
+        var px = hp.x + aimVx * t;
+        var py = hp.y + aimVy * t + 0.5 * gravity * t * t;
+        ctx.fillStyle = "rgba(255, 255, 255, " + (0.95 - (i / (dots + 3)) * 0.5) + ")";
+        ctx.beginPath();
+        ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawPopups() {
+      popups.forEach(function(p) {
         ctx.save();
-        ctx.globalAlpha = Math.max(0, ft.life);
-        ctx.fillStyle = ft.color;
-        ctx.font = "900 " + ft.size + "px Tahoma";
+        ctx.globalAlpha = Math.max(0, p.life);
         ctx.textAlign = "center";
-        ctx.shadowColor = "rgba(0,0,0,0.7)";
-        ctx.shadowBlur = 6;
-        ctx.fillText(ft.text, ft.x, ft.y);
+        for (var i = 0; i < p.lines.length; i++) {
+          var isCleanLine = i > 0;
+          ctx.font = isCleanLine ? "900 18px Tahoma" : "900 22px Tahoma";
+          var ly = p.y + i * 21;
+          ctx.strokeStyle = "#111111";
+          ctx.lineWidth = 4;
+          ctx.strokeText(p.lines[i], p.x, ly);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(p.lines[i], p.x, ly);
+        }
         ctx.restore();
       });
     }
 
-    function loop(now) {
-      var dt = Math.min((now - lastTimestamp) / 1000, 0.05);
-      lastTimestamp = now;
+    function renderLoop(now) {
+      var dt = Math.min((now - lastTime) / 1000, 0.05);
+      lastTime = now;
 
       update(dt);
 
       ctx.clearRect(0, 0, W, H);
-      drawArena();
-      drawScoreboardAndWind();
-      drawAimDots();
-      drawPlayer();
-      drawHoop();
-      drawBall();
-      drawFloatingTexts();
+      drawArenaBackground();
+      drawWallScoreboardAndWind();
+      drawBackboardAndHoop();
 
-      requestAnimationFrame(loop);
+      // توپ‌هایی که گل شده‌اند پشت لبه جلویی حلقه/تور رسم می‌شوند
+      activeBalls.forEach(function(b) {
+        if (b.fallingThroughNet) {
+          var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
+          drawSingleBall(b.x, b.y, b.r * scale, b.rot);
+        }
+      });
+
+      drawAimArc();
+      drawPlayerCharacter();
+
+      // توپ‌های در حال پرواز روی صحنه
+      activeBalls.forEach(function(b) {
+        if (!b.fallingThroughNet) {
+          var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
+          drawSingleBall(b.x, b.y, b.r * scale, b.rot);
+        }
+      });
+
+      drawPopups();
+      requestAnimationFrame(renderLoop);
     }
 
     function shareRecord() {
@@ -1215,15 +1397,9 @@
       }
     }
 
-    window.addEventListener("load", function() {
-      resize();
-      initCrowd();
-      resetHoopPosition();
-      resetBall();
-      renderLeaderboard("startRankList", "myRankBadge", "guestWarningStart");
-      lastTimestamp = performance.now();
-      requestAnimationFrame(loop);
-    });
+    resetGame();
+    lastTime = performance.now();
+    requestAnimationFrame(renderLoop);
   </script>
 </body>
 </html>
