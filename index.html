@@ -682,14 +682,13 @@
     var reloadTimer = 0;
     var playerJump = 0;
 
-    // نشانه گیری نرم و از راستای سبد
+    // نشانه گیری حالت اول با تسلط بیشتر و حرکت روان
     var isDragging = false;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
-    var baseAimVx = 0;
-    var baseAimVy = 0;
     var aimVx = 0;
     var aimVy = 0;
+    var aimFlightT = 0.86;
 
     var popups = [];
     var flashes = [];
@@ -780,40 +779,35 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // محاسبه قوس پایه دقیقاً در راستای سبد (بدون تیزی زیاد از پایین)
-    function computeBaseHoopAim() {
-      var hp = handPos();
-      var gravity = 980;
-      // زمان پرواز متعادل (0.78 ثانیه) تا قوس پرتاب نرم و غیرتیز باشد
-      var flightT = 0.78;
-      var targetX = hoop.targetX;
-      var targetY = hoop.targetY + 8;
-
-      baseAimVx = (targetX - hp.x) / flightT;
-      baseAimVy = (targetY - hp.y - 0.5 * gravity * flightT * flightT) / flightT;
-    }
-
-    // تنظیم نرم خط‌چین نسبت به راستای سبد
+    // حالت اول: محاسبه نقطه فرود نسبت به سبد (بدون پرش و با تسلط بیشتر روی چپ/راست و بالا/پایین)
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
 
-      // تشخیص جهت کشیدن (به سمت سبد یا به عقب/پایین)
-      var adjX, adjY;
-      if (dx >= -12 && dy <= 25) {
-        adjX = dx;
-        adjY = dy;
+      // پشتیبانی از هر دو حالت کشیدن انگشت: به سمت جلو/بالا یا کشیدن به عقب/پایین
+      var moveX = 0;
+      var moveY = 0;
+
+      if (dx > -15 && dy < 35) {
+        moveX = dx;
+        moveY = dy;
       } else {
-        adjX = -dx;
-        adjY = -dy;
+        moveX = -dx;
+        moveY = -dy;
       }
 
-      // ضریب‌های ملایم و کنترل‌شده (بدون تیزی ناگهانی از پایین)
-      var nextVx = baseAimVx + adjX * 1.45;
-      var nextVy = baseAimVy + adjY * 1.25;
+      // تسلط بیشتر و روان روی جابه‌جایی نقطه فرود حول سبد (بدون پرش ناگهانی)
+      var targetOffsetX = Math.max(-220, Math.min(260, moveX * 1.8));
+      var targetOffsetY = Math.max(-220, Math.min(180, moveY * 1.5));
 
-      aimVx = Math.max(110, Math.min(820, nextVx));
-      aimVy = Math.max(-880, Math.min(-340, nextVy));
+      var hp = handPos();
+      var aimTargetX = hoop.targetX + targetOffsetX;
+      var aimTargetY = hoop.targetY + 6 + targetOffsetY;
+
+      aimFlightT = 0.86;
+      var gravity = 980;
+      aimVx = (aimTargetX - hp.x) / aimFlightT;
+      aimVy = (aimTargetY - hp.y - 0.5 * gravity * aimFlightT * aimFlightT) / aimFlightT;
     }
 
     function getPos(e) {
@@ -833,11 +827,7 @@
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
-
-      // به محض لمس صفحه، خط‌چین دقیقاً از راستای سبد نمایان می‌شود
-      computeBaseHoopAim();
-      aimVx = baseAimVx;
-      aimVy = baseAimVy;
+      computeAim();
     }
 
     function handleMove(e) {
@@ -850,7 +840,7 @@
       if (!isDragging) return;
       isDragging = false;
       if (!hasBallInHand || gameState !== "PLAYING") return;
-      if (Math.hypot(aimVx, aimVy) < 160) return;
+      if (Math.hypot(aimVx, aimVy) < 120) return;
 
       var hp = handPos();
       var initialSpin = -5.0 + (windDir * windLevel * 1.4);
@@ -1090,7 +1080,7 @@
     }
 
     // ==========================================
-    // ۵. رندر صحنه و حلقه قرمز
+    // ۵. رندر صحنه
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1478,15 +1468,14 @@
       ctx.restore();
     }
 
-    // خط‌چین نرم در راستای سبد
+    // خط‌چین حالت اول با تسلط نرم و کامل
     function drawAimArc() {
-      if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 160) return;
+      if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
       var gravity = 980;
       var dots = 15;
-      var totalPreviewTime = 0.82;
       for (var i = 1; i <= dots; i++) {
-        var t = totalPreviewTime * (i / dots);
+        var t = (aimFlightT * 0.92) * (i / dots);
         var px = hp.x + aimVx * t;
         var py = hp.y + aimVy * t + 0.5 * gravity * t * t;
         if (py > courtFloorY()) break;
