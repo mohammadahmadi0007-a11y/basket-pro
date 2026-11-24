@@ -778,13 +778,14 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // نشانه‌گیری مستقیم، پیوسته و بدون پرش:
-    // راست/چپ انگشت = راست/چپ خط‌چین | بالا/پایین انگشت = پایین/بالا رفتن خط‌چین
+    // نشانه‌گیری معکوس (تیرکمانی) نرم در هر دو جهت:
+    // انگشت به چپ -> خط‌چین به راست | انگشت به راست -> خط‌چین به چپ
+    // انگشت به بالا -> خط‌چین به پایین | انگشت به پایین -> خط‌چین به بالا
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
 
-      var targetOffsetX = Math.max(-240, Math.min(280, dx * 1.65));
+      var targetOffsetX = Math.max(-240, Math.min(280, -dx * 1.65));
       var targetOffsetY = Math.max(-220, Math.min(220, -dy * 1.45));
 
       var hp = handPos();
