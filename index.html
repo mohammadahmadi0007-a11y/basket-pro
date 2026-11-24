@@ -463,7 +463,7 @@
     }
 
     // ==========================================
-    // ۲. افکت‌های صوتی واقعی (Web Audio API)
+    // ۲. افکت‌های صوتی (شامل صدای واقعی زنجیر فلزی)
     // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
@@ -508,8 +508,8 @@
         var osc = audioCtx.createOscillator();
         var g = audioCtx.createGain();
         osc.type = "triangle";
-        osc.frequency.setValueAtTime(195, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(68, audioCtx.currentTime + 0.11);
+        osc.frequency.setValueAtTime(210, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(72, audioCtx.currentTime + 0.11);
         g.gain.setValueAtTime(0.35, audioCtx.currentTime);
         g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
         osc.connect(g); g.connect(audioCtx.destination);
@@ -517,45 +517,50 @@
       } catch (e) {}
     }
 
-    function playScoreSound(isClean) {
+    // صدای برخورد توپ با تور زنجیری فلزی + تشویق
+    function playChainScoreSound(isClean) {
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
       try {
-        var len = Math.floor(audioCtx.sampleRate * 0.28);
-        var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-        var d = buf.getChannelData(0);
-        for (var i = 0; i < len; i++) {
-          d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.09));
-        }
-        var src = audioCtx.createBufferSource();
-        src.buffer = buf;
-        var flt = audioCtx.createBiquadFilter();
-        flt.type = "bandpass";
-        flt.frequency.value = 2400;
-        var ng = audioCtx.createGain();
-        ng.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        ng.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.27);
-        src.connect(flt); flt.connect(ng); ng.connect(audioCtx.destination);
-        src.start();
+        var now = audioCtx.currentTime;
+        // جیرینگ حلقه‌های فلزی زنجیر (چند پالس فرکانس بالا با تأخیر کوتاه)
+        var chainFreqs = [2650, 3820, 4950, 3120, 5600, 4180, 2900, 5200];
+        for (var k = 0; k < chainFreqs.length; k++) {
+          var t = now + k * 0.028;
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = k % 2 === 0 ? "triangle" : "sine";
+          osc.frequency.setValueAtTime(chainFreqs[k], t);
+          osc.frequency.exponentialRampToValueAtTime(chainFreqs[k] * 0.78, t + 0.09);
 
-        var clen = Math.floor(audioCtx.sampleRate * 0.65);
+          gain.gain.setValueAtTime(0.14, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.095);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.1);
+        }
+
+        // صدای تشویق تماشاچی‌ها در پس‌زمینه
+        var clen = Math.floor(audioCtx.sampleRate * 0.6);
         var cbuf = audioCtx.createBuffer(1, clen, audioCtx.sampleRate);
         var cd = cbuf.getChannelData(0);
         for (var j = 0; j < clen; j++) {
-          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.12)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.28));
+          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.1)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.25));
           cd[j] = (Math.random() * 2 - 1) * env;
         }
         var csrc = audioCtx.createBufferSource();
         csrc.buffer = cbuf;
         var cflt = audioCtx.createBiquadFilter();
         cflt.type = "lowpass";
-        cflt.frequency.value = isClean ? 1400 : 950;
+        cflt.frequency.value = isClean ? 1350 : 900;
         var cg = audioCtx.createGain();
-        cg.gain.setValueAtTime(isClean ? 0.32 : 0.2, audioCtx.currentTime);
-        cg.gain.exponentialRampToValueAtTime(0.005, audioCtx.currentTime + 0.64);
+        cg.gain.setValueAtTime(isClean ? 0.26 : 0.16, now);
+        cg.gain.exponentialRampToValueAtTime(0.005, now + 0.59);
         csrc.connect(cflt); cflt.connect(cg); cg.connect(audioCtx.destination);
-        csrc.start();
+        csrc.start(now);
       } catch (e) {}
     }
 
@@ -577,7 +582,7 @@
     }
 
     // ==========================================
-    // ۳. موتور گرافیک و فیزیک مطابق فریم‌های ویدئو
+    // ۳. موتور گرافیک و فیزیک
     // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
@@ -602,9 +607,9 @@
     var timeLeft = 21.0;
     var lastTime = 0;
 
-    // باد فقط روی توپ پرتاب‌شده اثر می‌گذارد (خط‌چین نشانه کاملاً ثابت و مستقل است)
+    // باد ملایم و قابل کنترل (درجه ۱ تا ۳) که بعد از هر ضربه تغییر می‌کند
     var windDir = -1;
-    var windLevel = 0;
+    var windLevel = 1;
 
     function courtFloorY() { return H * 0.765; }
     function playerX() { return Math.max(46, W * 0.115); }
@@ -630,7 +635,6 @@
     var reloadTimer = 0;
     var playerJump = 0;
 
-    // نشانه گیری (کاملاً مستقل از باد)
     var isDragging = false;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
@@ -678,23 +682,23 @@
       hoop.targetY = ny;
     }
 
-    function updateWindForScore() {
-      if (score < 3) {
-        windLevel = 0;
-        return;
-      }
+    // تغییر جهت و شدت باد تحت هر شرایطی بعد از هر ضربه
+    function randomizeWindAfterShot() {
+      var prevDir = windDir;
+      var prevLevel = windLevel;
       windDir = Math.random() < 0.5 ? -1 : 1;
-      if (score < 6) {
-        windLevel = Math.floor(Math.random() * 2) + 1;
-      } else {
-        windLevel = Math.floor(Math.random() * 3) + 1;
+      windLevel = Math.floor(Math.random() * 3) + 1; // درجه ۱، ۲ یا ۳
+      // اگر دقیقاً مثل قبل درآمد، یکی را عوض کن تا بازیکن تغییر باد بعد از هر ضربه را ببیند
+      if (windDir === prevDir && windLevel === prevLevel) {
+        windLevel = (prevLevel % 3) + 1;
       }
     }
 
     function resetGame() {
       score = 0;
       timeLeft = 21.0;
-      windLevel = 0;
+      windDir = 1;
+      windLevel = 1;
       activeBalls = [];
       popups = [];
       hasBallInHand = true;
@@ -725,7 +729,6 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // محاسبه بردار پرتاب صرفاً بر اساس کشیدن انگشت (بدون اثر باد روی خط‌چین)
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
@@ -794,8 +797,7 @@
       if (Math.hypot(aimVx, aimVy) < 120) return;
 
       var hp = handPos();
-      // چرخش اولیه توپ هنگام پرتاب (بک‌اسپین + تأثیر جهت باد)
-      var initialSpin = -5.5 + (windDir * windLevel * 2.4);
+      var initialSpin = -5.0 + (windDir * windLevel * 1.4);
 
       activeBalls.push({
         x: hp.x,
@@ -809,7 +811,10 @@
         age: 0,
         scored: false,
         touchedRim: false,
-        fallingThroughNet: false
+        fallingThroughNet: false,
+        shotWindDir: windDir,
+        shotWindLevel: windLevel,
+        windChangedForThisShot: false
       });
 
       hasBallInHand = false;
@@ -827,7 +832,7 @@
     window.addEventListener("touchend", handleEnd);
 
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی (باد فقط روی توپ اثر می‌گذارد)
+    // ۴. به‌روزرسانی منطق بازی
     // ==========================================
     function update(dt) {
       if (Math.random() < 0.08) {
@@ -867,21 +872,21 @@
       }
 
       var gravity = 980;
-      var windForce = windDir * windLevel * 125;
 
       for (var i = activeBalls.length - 1; i >= 0; i--) {
         var b = activeBalls[i];
         b.age += dt;
         b.prevY = b.y;
 
-        // باد فقط روی توپِ پرتاب‌شده نیرو وارد می‌کند و چرخش آن را در جهت باد تقویت می‌کند
+        // نیروی باد ملایم و کنترل‌شده (درجه ۱: ~12px، درجه ۲: ~24px، درجه ۳: ~36px انحراف)
+        var windForce = b.shotWindDir * b.shotWindLevel * 32;
         b.vx += windForce * dt;
         b.vy += gravity * dt;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
 
-        // چرخش محسوس توپ در جهت باد
-        b.spinSpeed += (windDir * windLevel * 3.6) * dt;
+        // چرخش توپ در جهت باد
+        b.spinSpeed += (b.shotWindDir * b.shotWindLevel * 1.6) * dt;
         b.rot += b.spinSpeed * dt;
 
         var rimY = hoop.y + 10;
@@ -907,6 +912,7 @@
           }
         }
 
+        // گل شدن و برخورد با زنجیر
         if (
           !b.scored &&
           b.vy > 0 &&
@@ -926,7 +932,7 @@
           var isClean = !b.touchedRim;
           var addSec = isClean ? 6 : 3;
           timeLeft = Math.min(60, timeLeft + addSec);
-          playScoreSound(isClean);
+          playChainScoreSound(isClean);
 
           if (isClean) {
             spawnPopup(["+" + addSec + " SEC", "CLEAN", "SHOT"], hoop.x + 56, hoop.y + 8);
@@ -935,12 +941,20 @@
           }
 
           pickNextHoopSpot();
-          updateWindForScore();
+          if (!b.windChangedForThisShot) {
+            b.windChangedForThisShot = true;
+            randomizeWindAfterShot();
+          }
         }
 
         var floor = courtFloorY() - 8;
         if (b.y > floor) {
           b.y = floor;
+          // اگر ضربه گل نشد و به زمین خورد، باز هم باد تغییر می‌کند
+          if (!b.windChangedForThisShot) {
+            b.windChangedForThisShot = true;
+            randomizeWindAfterShot();
+          }
           if (Math.abs(b.vy) > 90) {
             b.vy = -b.vy * 0.52;
             b.vx *= 0.78;
@@ -953,13 +967,17 @@
         }
 
         if (b.age > 3.2 || b.x < -80 || b.x > W + 80) {
+          if (!b.windChangedForThisShot) {
+            b.windChangedForThisShot = true;
+            randomizeWindAfterShot();
+          }
           activeBalls.splice(i, 1);
         }
       }
     }
 
     // ==========================================
-    // ۵. رندر صحنه و توپ بسکتبال واقعی
+    // ۵. رندر صحنه و تور زنجیری فلزی
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1150,34 +1168,65 @@
       ctx.lineWidth = 2.5;
       ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
 
+      // تور زنجیری فلزی آویزان زیر حلقه
       var rimY = hoop.y + 10;
       var topL = hoop.x - hoop.rimRx + 2;
       var topR = hoop.x + hoop.rimRx - 2;
-      var netH = 28;
-      var sway = Math.sin(hoop.netAnim * Math.PI * 4) * 6 * hoop.netAnim;
+      var netH = 31;
+      var sway = Math.sin(hoop.netAnim * Math.PI * 4) * 7 * hoop.netAnim;
 
-      ctx.strokeStyle = "#141414";
-      ctx.lineWidth = 1.8;
-      var strands = 5;
+      var strands = 6;
+      var linksPerStrand = 5;
+
+      // کشیدن حلقه‌های زنجیر فلزی نقره‌ای و تیره
       for (var i = 0; i <= strands; i++) {
         var t = i / strands;
         var sx = topL + (topR - topL) * t;
-        var ex = topL + 5 + (topR - topL - 10) * t + sway;
-        ctx.beginPath();
-        ctx.moveTo(sx, rimY);
-        ctx.lineTo(ex, rimY + netH);
-        ctx.stroke();
+        var ex = topL + 6 + (topR - topL - 12) * t + sway;
+
+        for (var l = 0; l < linksPerStrand; l++) {
+          var lt1 = l / linksPerStrand;
+          var lt2 = (l + 0.85) / linksPerStrand;
+          var lx = sx + (ex - sx) * ((lt1 + lt2) * 0.5);
+          var ly = rimY + 2 + netH * ((lt1 + lt2) * 0.5);
+
+          ctx.save();
+          ctx.translate(lx, ly);
+          // سایه تیره حلقه زنجیر
+          ctx.strokeStyle = "#374151";
+          ctx.lineWidth = 2.4;
+          ctx.beginPath();
+          if (l % 2 === 0) {
+            ctx.ellipse(0, 0, 1.8, 3.2, 0, 0, Math.PI * 2);
+          } else {
+            ctx.ellipse(0, 0, 2.5, 2.2, 0, 0, Math.PI * 2);
+          }
+          ctx.stroke();
+
+          // درخشش فلزی نقره‌ای روی زنجیر
+          ctx.strokeStyle = "#e5e7eb";
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.arc(-0.4, -0.5, 1.5, 0, Math.PI);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
+
+      // اتصال‌های مورب زنجیر بین رشته‌ها
+      ctx.strokeStyle = "#9ca3af";
+      ctx.lineWidth = 1.3;
       for (var r = 1; r <= 3; r++) {
-        var rt = r / 3;
-        var ny = rimY + netH * rt;
-        var inset = rt * 5;
+        var rt = r / 3.4;
+        var ny = rimY + 2 + netH * rt;
+        var inset = rt * 6;
         ctx.beginPath();
         ctx.moveTo(topL + inset + sway * rt, ny);
         ctx.lineTo(topR - inset + sway * rt, ny);
         ctx.stroke();
       }
 
+      // حلقه نارنجی
       ctx.strokeStyle = "#ff4500";
       ctx.lineWidth = 4.5;
       ctx.beginPath();
@@ -1259,12 +1308,10 @@
       }
     }
 
-    // رسم توپ بسکتبال واقعی با قوس‌های استاندارد و بافت چرم
     function drawSingleBall(x, y, r, rot) {
       ctx.save();
       ctx.translate(x, y);
 
-      // بدنه اصلی کروی توپ بسکتبال
       var g = ctx.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
       g.addColorStop(0, "#ff9f1c");
       g.addColorStop(0.55, "#e85d04");
@@ -1274,37 +1321,31 @@
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
 
-      // برش دایره‌ای تا خطوط منحنی بیرون از توپ نزنند
       ctx.beginPath();
       ctx.arc(0, 0, r - 0.5, 0, Math.PI * 2);
       ctx.clip();
 
-      // چرخش شیارهای توپ بر اساس زاویه چرخش
       ctx.rotate(rot);
 
       ctx.strokeStyle = "#260b03";
       ctx.lineWidth = Math.max(1.3, r * 0.11);
       ctx.lineCap = "round";
 
-      // ۱. خط عمودی میانی
       ctx.beginPath();
       ctx.moveTo(0, -r);
       ctx.lineTo(0, r);
       ctx.stroke();
 
-      // ۲. خط افقی استوایی (با کمی انحنای سه‌بعدی)
       ctx.beginPath();
       ctx.moveTo(-r, 0);
       ctx.quadraticCurveTo(0, r * 0.18, r, 0);
       ctx.stroke();
 
-      // ۳. قوس جانبی سمت چپ توپ بسکتبال
       ctx.beginPath();
       ctx.moveTo(-r * 0.62, -r * 0.85);
       ctx.quadraticCurveTo(-r * 0.18, 0, -r * 0.62, r * 0.85);
       ctx.stroke();
 
-      // ۴. قوس جانبی سمت راست توپ بسکتبال
       ctx.beginPath();
       ctx.moveTo(r * 0.62, -r * 0.85);
       ctx.quadraticCurveTo(r * 0.18, 0, r * 0.62, r * 0.85);
@@ -1312,7 +1353,6 @@
 
       ctx.restore();
 
-      // حاشیه دور توپ
       ctx.save();
       ctx.translate(x, y);
       ctx.strokeStyle = "rgba(38, 11, 3, 0.7)";
@@ -1323,7 +1363,6 @@
       ctx.restore();
     }
 
-    // خط‌چین نشانه: کاملاً ثابت و بدون تغییر از باد (باد فقط توپ را منحرف می‌کند)
     function drawAimArc() {
       if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
