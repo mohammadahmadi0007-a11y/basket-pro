@@ -36,35 +36,78 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 52px;
-      padding: 0 14px;
+      height: 54px;
+      padding: 0 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       z-index: 10;
       pointer-events: none;
-      background: linear-gradient(to bottom, rgba(15, 2, 4, 0.75), rgba(15, 2, 4, 0));
+      background: linear-gradient(to bottom, rgba(15, 2, 4, 0.8), rgba(15, 2, 4, 0));
     }
-    .score-display {
-      color: #ffffff;
-      font-size: 18px;
-      font-weight: 900;
-      direction: ltr;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.8);
-    }
-    .hud-actions {
+    .right-hud-group {
       display: flex;
+      align-items: center;
       gap: 8px;
       pointer-events: auto;
     }
+    .country-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(20, 4, 8, 0.78);
+      border: 1.5px solid rgba(255, 190, 11, 0.55);
+      padding: 4px 10px 4px 8px;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .flag-box {
+      width: 24px;
+      height: 16px;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.4);
+      flex-shrink: 0;
+      display: inline-flex;
+    }
+    .coin-pill {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 190, 11, 0.2);
+      border: 1px solid rgba(255, 190, 11, 0.5);
+      color: #ffdd67;
+      padding: 4px 9px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .left-hud-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      pointer-events: auto;
+    }
+    .score-display {
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 900;
+      direction: ltr;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.85);
+      margin-left: 4px;
+    }
     .hud-btn {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: 1.5px solid rgba(255, 255, 255, 0.35);
-      background: rgba(20, 4, 8, 0.65);
+      background: rgba(20, 4, 8, 0.72);
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -75,7 +118,7 @@
       bottom: 14px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 2, 4, 0.72);
+      background: rgba(15, 2, 4, 0.75);
       border: 1px solid rgba(255, 190, 11, 0.4);
       color: #ffdd67;
       padding: 6px 14px;
@@ -94,12 +137,12 @@
       bottom: 0;
       width: 100%;
       height: 100%;
-      background: rgba(22, 3, 6, 0.9);
+      background: rgba(22, 3, 6, 0.92);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 18px;
+      padding: 16px;
       z-index: 30;
       color: #fff;
     }
@@ -112,31 +155,31 @@
       background: #d93848;
       color: #fff;
       text-align: center;
-      font-size: 28px;
+      font-size: 25px;
       font-weight: 900;
-      padding: 10px;
+      padding: 9px;
       border-radius: 14px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
     }
     .stats-row {
       display: flex;
       gap: 10px;
       width: 100%;
       max-width: 380px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .stat-box {
       flex: 1;
       background: rgba(48, 8, 14, 0.96);
       border: 1px solid rgba(255, 190, 11, 0.3);
       border-radius: 14px;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
     }
     .stat-val {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 900;
       color: #ffbe0b;
     }
@@ -152,7 +195,7 @@
       border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 16px;
       padding: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .card-header {
       display: flex;
@@ -169,7 +212,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 195px;
+      max-height: 170px;
       overflow-y: auto;
     }
     .rank-item {
@@ -222,16 +265,76 @@
       padding: 6px;
       border-radius: 8px;
     }
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      max-height: 295px;
+      overflow-y: auto;
+      padding: 2px;
+    }
+    .shop-item {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 9px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .shop-item.equipped {
+      border-color: #2ecc71;
+      background: rgba(46, 204, 113, 0.2);
+    }
+    .shop-item-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .kit-preview {
+      width: 34px;
+      height: 28px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      position: relative;
+      overflow: hidden;
+    }
+    .shop-status {
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 10px;
+      width: 100%;
+      text-align: center;
+    }
+    .status-equipped {
+      background: #2ecc71;
+      color: #0b2916;
+    }
+    .status-owned {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+    }
+    .status-locked {
+      background: rgba(255, 190, 11, 0.22);
+      color: #ffdd67;
+      border: 1px solid rgba(255, 190, 11, 0.45);
+    }
     .btn {
       width: 100%;
       max-width: 380px;
-      padding: 14px;
+      padding: 13px;
       border: none;
       border-radius: 14px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 900;
       cursor: pointer;
-      margin-bottom: 9px;
+      margin-bottom: 8px;
       touch-action: manipulation;
     }
     .btn:active {
@@ -241,26 +344,52 @@
       background: linear-gradient(135deg, #2ecc71, #27ae60);
       color: #fff;
     }
-    .btn-share {
-      background: rgba(255, 255, 255, 0.14);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      font-size: 14px;
+    .btn-shop {
+      background: linear-gradient(135deg, #ffbe0b, #fb8500);
+      color: #1d0802;
     }
-    .channel-tag {
+    .btn-forward {
+      background: linear-gradient(135deg, #3a86ff, #2563eb);
+      color: #fff;
+    }
+    .channel-link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
       margin-top: 2px;
       font-size: 12px;
-      color: #e0aeb4;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 5px 14px;
+      font-weight: bold;
+      color: #ffdd67;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 190, 11, 0.4);
+      padding: 7px 16px;
       border-radius: 20px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .channel-link-btn:active {
+      transform: scale(0.96);
     }
   </style>
 </head>
 <body>
+  <!-- نوار بالای بازی: گوشه راست پرچم کشور و سکه، گوشه چپ دکمه‌ها و امتیاز -->
   <div class="top-hud">
-    <div class="score-display">Score: <span id="hudScore">0</span></div>
-    <div class="hud-actions">
+    <div class="right-hud-group">
+      <div class="country-badge" onclick="openShopModal()" title="تغییر لباس کشور">
+        <span class="flag-box" id="hudFlagBox"></span>
+        <span id="hudCountryName">کلاسیک</span>
+      </div>
+      <div class="coin-pill" onclick="openShopModal()" title="سکه و فروشگاه">
+        <span>🪙</span>
+        <span id="hudCoins">0</span>
+      </div>
+    </div>
+
+    <div class="left-hud-group">
+      <div class="score-display">Score: <span id="hudScore">0</span></div>
+      <button class="hud-btn" type="button" onclick="openShopModal()" title="فروشگاه لباس">🛒</button>
       <button class="hud-btn" type="button" onclick="openRankModal()" title="جدول برترین‌ها">🏆</button>
       <button class="hud-btn" id="soundToggle" type="button" onclick="toggleSound()" title="صدا">🔊</button>
     </div>
@@ -268,6 +397,20 @@
 
   <div class="hint-pill" id="hintPill">انگشتت رو بکش و رها کن تا شوت بزنی 🏀</div>
   <canvas id="gameCanvas"></canvas>
+
+  <!-- پنجره فروشگاه ۸ کشور -->
+  <div id="shopModal" class="overlay hidden">
+    <div class="banner-title" style="font-size:21px;background:#fb8500;color:#1a0500;">🛒 فروشگاه لباس تیم‌های ملی</div>
+    <div class="card">
+      <div class="card-header">
+        <span>انتخاب کیت کشور (با هر گل ۱ سکه بگیر)</span>
+        <span>🪙 <span id="shopCoinBalance">0</span></span>
+      </div>
+      <div class="shop-grid" id="shopGrid"></div>
+    </div>
+    <button class="btn btn-primary" type="button" onclick="closeShopModal()">بازگشت به بازی</button>
+    <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 عضویت در کانال @gamee_balee</a>
+  </div>
 
   <!-- پنجره رنکینگ در حین بازی -->
   <div id="rankModal" class="overlay hidden">
@@ -283,6 +426,7 @@
       </div>
     </div>
     <button class="btn btn-primary" type="button" onclick="closeRankModal()">ادامه بازی</button>
+    <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 اختصاصی کانال @gamee_balee</a>
   </div>
 
   <!-- صفحه پایان بازی -->
@@ -311,8 +455,9 @@
     </div>
 
     <button class="btn btn-primary" type="button" onclick="resetGame()">🔄 بازی مجدد</button>
-    <button class="btn btn-share" type="button" onclick="shareRecord()">📤 کل‌کل و ارسال رکورد به دوستان</button>
-    <div class="channel-tag">🎮 اختصاصی کانال @gamee_balee</div>
+    <button class="btn btn-shop" type="button" onclick="openShopModal()">🛒 فروشگاه لباس ۸ کشور (🪙 <span id="endCoins">0</span>)</button>
+    <button class="btn btn-forward" type="button" onclick="forwardChallenge()">📨 فوروارد و کل‌کل با دوستان در بله</button>
+    <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 اختصاصی کانال @gamee_balee</a>
   </div>
 
   <script>
@@ -344,7 +489,8 @@
     // ۱. تنظیمات اختصاصی ربات و استاندارد بله
     // ==========================================
     var BOT_USERNAME = "basket_pro_game_bot";
-    var CHANNEL_ID = "@gamee_balee";
+    var CHANNEL_USERNAME = "gamee_balee";
+    var CHANNEL_URL = "https://ble.ir/" + CHANNEL_USERNAME;
     var LEADERBOARD_API_URL = "";
 
     var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
@@ -362,6 +508,268 @@
         }
       : { id: "guest", name: "بازیکن مهمان", photo: "" };
 
+    // باز کردن مستقیم کانال با لمس دکمه پایین صفحه
+    function openChannel(e) {
+      if (e) e.preventDefault();
+      if (webapp) {
+        try {
+          if (typeof webapp.openBaleLink === "function") {
+            webapp.openBaleLink(CHANNEL_URL);
+            return;
+          }
+          if (typeof webapp.openLink === "function") {
+            webapp.openLink(CHANNEL_URL);
+            return;
+          }
+        } catch (err) {}
+      }
+      window.open(CHANNEL_URL, "_blank");
+    }
+
+    // فوروارد مستقیم پیام کل‌کل در پیام‌رسان بله
+    function forwardChallenge() {
+      var best = Math.max(score, getLocalBest());
+      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
+      var msgText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇🔥\n" + gameLink + "\n\n🎮 کانال بازی‌ها: @" + CHANNEL_USERNAME;
+      var baleShareUrl = "https://ble.ir/share/url?url=" + encodeURIComponent(gameLink) + "&text=" + encodeURIComponent(msgText);
+
+      if (webapp) {
+        try {
+          if (typeof webapp.openBaleLink === "function") {
+            webapp.openBaleLink(baleShareUrl);
+            return;
+          }
+          if (typeof webapp.openLink === "function") {
+            webapp.openLink(baleShareUrl);
+            return;
+          }
+        } catch (err) {}
+      }
+      if (navigator.share) {
+        navigator.share({ text: msgText }).catch(function() {});
+      } else {
+        window.location.href = baleShareUrl;
+      }
+    }
+
+    // ==========================================
+    // ۲. فروشگاه ۸ کشور + پرچم‌ها + رنگ لباس بازیکن
+    // ==========================================
+    var KITS = [
+      {
+        id: "brazil",
+        name: "برزیل",
+        price: 5,
+        jersey: "#ffdf00",
+        stripe: "#009c3b",
+        shorts: "#002776",
+        band: "#009c3b",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#009c3b"/><polygon points="15,2 28,10 15,18 2,10" fill="#ffdf00"/><circle cx="15" cy="10" r="4.5" fill="#002776"/></svg>'
+      },
+      {
+        id: "iran",
+        name: "ایران",
+        price: 12,
+        jersey: "#ffffff",
+        stripe: "#239f40",
+        shorts: "#da0000",
+        band: "#da0000",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#239f40"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#da0000"/><circle cx="15" cy="10" r="2" fill="#da0000"/></svg>'
+      },
+      {
+        id: "argentina",
+        name: "آرژانتین",
+        price: 20,
+        jersey: "#74acdf",
+        stripe: "#ffffff",
+        shorts: "#111827",
+        band: "#74acdf",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#74acdf"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#74acdf"/><circle cx="15" cy="10" r="2.2" fill="#f6b40e"/></svg>'
+      },
+      {
+        id: "portugal",
+        name: "پرتغال",
+        price: 30,
+        jersey: "#da291c",
+        stripe: "#006600",
+        shorts: "#006600",
+        band: "#ffcc00",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="11" height="20" x="0" fill="#006600"/><rect width="19" height="20" x="11" fill="#da291c"/><circle cx="11" cy="10" r="3.5" fill="#ffcc00"/></svg>'
+      },
+      {
+        id: "france",
+        name: "فرانسه",
+        price: 45,
+        jersey: "#002395",
+        stripe: "#ed2939",
+        shorts: "#ffffff",
+        band: "#ed2939",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#002395"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ed2939"/></svg>'
+      },
+      {
+        id: "italy",
+        name: "ایتالیا",
+        price: 60,
+        jersey: "#0066cc",
+        stripe: "#ffffff",
+        shorts: "#ffffff",
+        band: "#009246",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#009246"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ce2b37"/></svg>'
+      },
+      {
+        id: "england",
+        name: "انگلستان",
+        price: 80,
+        jersey: "#ffffff",
+        stripe: "#ce1124",
+        shorts: "#00247d",
+        band: "#ce1124",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><rect width="4" height="20" x="13" fill="#ce1124"/><rect width="30" height="4" y="8" fill="#ce1124"/></svg>'
+      },
+      {
+        id: "japan",
+        name: "ژاپن",
+        price: 100,
+        jersey: "#003893",
+        stripe: "#bc002d",
+        shorts: "#0a1931",
+        band: "#bc002d",
+        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><circle cx="15" cy="10" r="5.5" fill="#bc002d"/></svg>'
+      }
+    ];
+
+    var DEFAULT_KIT = {
+      id: "default",
+      name: "کلاسیک",
+      price: 0,
+      jersey: "#ffbe0b",
+      stripe: "#e63946",
+      shorts: "#e63946",
+      band: "#e63946",
+      flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffbe0b"/><circle cx="15" cy="10" r="6" fill="#e85d04"/></svg>'
+    };
+
+    var COINS_KEY = "basket_pro_coins_v1";
+    var UNLOCKED_KEY = "basket_pro_unlocked_kits_v1";
+    var EQUIPPED_KEY = "basket_pro_equipped_kit_v1";
+
+    function getCoins() {
+      return Number(safeGet(COINS_KEY) || 0);
+    }
+    function addCoins(amount) {
+      var total = getCoins() + amount;
+      safeSet(COINS_KEY, String(total));
+      updateCoinAndFlagHud();
+    }
+    function getUnlockedIds() {
+      try {
+        var arr = JSON.parse(safeGet(UNLOCKED_KEY) || "[]");
+        return Array.isArray(arr) ? arr : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function getEquippedKit() {
+      var eqId = safeGet(EQUIPPED_KEY) || "default";
+      for (var i = 0; i < KITS.length; i++) {
+        if (KITS[i].id === eqId) return KITS[i];
+      }
+      return DEFAULT_KIT;
+    }
+
+    function updateCoinAndFlagHud() {
+      var coins = getCoins();
+      var kit = getEquippedKit();
+      var hudCoinsEl = document.getElementById("hudCoins");
+      var shopCoinEl = document.getElementById("shopCoinBalance");
+      var endCoinsEl = document.getElementById("endCoins");
+      var flagBox = document.getElementById("hudFlagBox");
+      var countryNameEl = document.getElementById("hudCountryName");
+
+      if (hudCoinsEl) hudCoinsEl.textContent = String(coins);
+      if (shopCoinEl) shopCoinEl.textContent = String(coins);
+      if (endCoinsEl) endCoinsEl.textContent = String(coins);
+      if (flagBox) flagBox.innerHTML = kit.flagSvg;
+      if (countryNameEl) countryNameEl.textContent = kit.name;
+    }
+
+    function renderShop() {
+      var grid = document.getElementById("shopGrid");
+      if (!grid) return;
+      var coins = getCoins();
+      var unlocked = getUnlockedIds();
+      var equipped = getEquippedKit();
+
+      document.getElementById("shopCoinBalance").textContent = String(coins);
+
+      grid.innerHTML = KITS.map(function(kit) {
+        var isUnlocked = unlocked.indexOf(kit.id) >= 0;
+        var isEquipped = equipped.id === kit.id;
+        var statusHtml = "";
+        if (isEquipped) {
+          statusHtml = '<div class="shop-status status-equipped">✅ در حال استفاده</div>';
+        } else if (isUnlocked) {
+          statusHtml = '<div class="shop-status status-owned">انتخاب لباس</div>';
+        } else {
+          statusHtml = '<div class="shop-status status-locked">🪙 ' + kit.price + ' سکه</div>';
+        }
+
+        return '<div class="shop-item ' + (isEquipped ? "equipped" : "") + '" onclick="handleKitClick(\'' + kit.id + '\')">' +
+          '<div class="shop-item-top">' +
+          '<span class="flag-box">' + kit.flagSvg + '</span>' +
+          '<span>' + kit.name + '</span>' +
+          '</div>' +
+          '<div class="kit-preview" style="background:linear-gradient(to bottom, ' + kit.jersey + ' 62%, ' + kit.shorts + ' 62%);">' +
+          '<div style="position:absolute;top:24%;left:0;right:0;height:4px;background:' + kit.stripe + ';"></div>' +
+          '</div>' +
+          statusHtml +
+          '</div>';
+      }).join("");
+    }
+
+    function handleKitClick(kitId) {
+      var kit = null;
+      for (var i = 0; i < KITS.length; i++) {
+        if (KITS[i].id === kitId) { kit = KITS[i]; break; }
+      }
+      if (!kit) return;
+
+      var unlocked = getUnlockedIds();
+      var isUnlocked = unlocked.indexOf(kit.id) >= 0;
+
+      if (isUnlocked) {
+        safeSet(EQUIPPED_KEY, kit.id);
+        updateCoinAndFlagHud();
+        renderShop();
+        return;
+      }
+
+      var coins = getCoins();
+      if (coins < kit.price) {
+        alert("برای باز کردن لباس تیم " + kit.name + " به " + kit.price + " سکه نیاز داری!\n(موجودی فعلی: " + coins + " سکه — با هر گل ۱ سکه می‌گیری)");
+        return;
+      }
+
+      safeSet(COINS_KEY, String(coins - kit.price));
+      unlocked.push(kit.id);
+      safeSet(UNLOCKED_KEY, JSON.stringify(unlocked));
+      safeSet(EQUIPPED_KEY, kit.id);
+      updateCoinAndFlagHud();
+      renderShop();
+    }
+
+    function openShopModal() {
+      isDragging = false;
+      renderShop();
+      document.getElementById("shopModal").classList.remove("hidden");
+    }
+    function closeShopModal() {
+      document.getElementById("shopModal").classList.add("hidden");
+    }
+
+    // ==========================================
+    // ۳. مدیریت رنکینگ (بدون ثبت بازیکن مهمان)
+    // ==========================================
     var STORAGE_KEY = "basket_pro_leaderboard_v2";
     var LOCAL_BEST_KEY = "basket_pro_my_best_v2";
 
@@ -455,6 +863,7 @@
     }
 
     function openRankModal() {
+      isDragging = false;
       renderLeaderboard("modalRankList", "modalRankBadge", "guestWarnModal");
       document.getElementById("rankModal").classList.remove("hidden");
     }
@@ -463,7 +872,7 @@
     }
 
     // ==========================================
-    // ۲. موتور صدای واقعی (برخورد توپ بسکتبال به سالن و زنجیر)
+    // ۴. موتور صدای واقعی (برخورد توپ بسکتبال به سالن و زنجیر)
     // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
@@ -665,7 +1074,7 @@
     }
 
     // ==========================================
-    // ۳. موتور گرافیک و فیزیک واقعی
+    // ۵. موتور گرافیک و فیزیک واقعی
     // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
@@ -685,7 +1094,6 @@
     window.addEventListener("resize", resize);
     resize();
 
-    // وضعیت‌های بازی: READY | PLAYING | BUZZER_WAIT (تایم تمام شده ولی توپ در هواست) | GAMEOVER
     var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
@@ -804,6 +1212,7 @@
       document.getElementById("hudScore").textContent = "0";
       document.getElementById("gameOverScreen").classList.add("hidden");
       document.getElementById("hintPill").classList.remove("hidden");
+      updateCoinAndFlagHud();
     }
 
     async function triggerGameOver() {
@@ -813,6 +1222,7 @@
       await submitScore(score);
       document.getElementById("finalScore").textContent = String(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
+      updateCoinAndFlagHud();
       await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
       document.getElementById("gameOverScreen").classList.remove("hidden");
     }
@@ -846,6 +1256,7 @@
     function handleStart(e) {
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
+      if (!document.getElementById("shopModal").classList.contains("hidden")) return;
       initAudio();
       if (gameState === "READY") {
         gameState = "PLAYING";
@@ -946,7 +1357,6 @@
       return false;
     }
 
-    // بررسی اینکه آیا هنوز توپِ در حال شوت و بلاتکلیفی در هوا وجود دارد یا نه
     function hasPendingShotInAir() {
       for (var i = 0; i < activeBalls.length; i++) {
         var b = activeBalls[i];
@@ -958,7 +1368,7 @@
     }
 
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی + قانون شوت لحظه آخر (Buzzer Beater)
+    // ۶. به‌روزرسانی منطق بازی
     // ==========================================
     function update(dt) {
       if (Math.random() < 0.08) {
@@ -1004,7 +1414,6 @@
           timeLeft = 0;
           isDragging = false;
           if (hasPendingShotInAir()) {
-            // تایم تمام شده ولی توپ در هواست: منتظر نتیجه پرتاب بمان
             gameState = "BUZZER_WAIT";
           } else {
             triggerGameOver();
@@ -1082,6 +1491,7 @@
           b.fallingThroughNet = true;
           b.vx *= 0.35;
           score += 1;
+          addCoins(1); // افزودن ۱ سکه برای خرید لباس کشورها
           document.getElementById("hudScore").textContent = String(score);
 
           chainStrands[0].vel -= 9.5;
@@ -1094,7 +1504,6 @@
           timeLeft = Math.min(60, timeLeft + addSec);
           playScoreWithChainAndCrowd(isClean);
 
-          // اگر در حالت انتظار پایان بازی گل شد، زمان اضافه می‌شود و بازی ادامه پیدا می‌کند
           if (gameState === "BUZZER_WAIT") {
             gameState = "PLAYING";
             hasBallInHand = true;
@@ -1152,14 +1561,13 @@
         }
       }
 
-      // اگر تایمر صفر شده و تکلیف توپ(های) پرتاب‌شده مشخص شد و گل نشد، بازی تمام شود
       if (gameState === "BUZZER_WAIT" && !hasPendingShotInAir()) {
         triggerGameOver();
       }
     }
 
     // ==========================================
-    // ۵. رندر صحنه
+    // ۷. رندر صحنه و لباس بازیکن مطابق کشور انتخاب‌شده
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1419,6 +1827,7 @@
     }
 
     function drawPlayerCharacter() {
+      var kit = getEquippedKit();
       var px = playerX();
       var floor = courtFloorY();
       var jumpOff = Math.sin(playerJump * Math.PI) * 18;
@@ -1430,6 +1839,7 @@
       ctx.ellipse(px, floor + 2, 18, 5, 0, 0, Math.PI * 2);
       ctx.fill();
 
+      // پاها و کفش
       ctx.fillStyle = "#e09f67";
       ctx.fillRect(px - 8, y - 24 + crouch, 6, 18 - crouch);
       ctx.fillRect(px + 2, y - 24 + crouch, 6, 18 - crouch);
@@ -1440,15 +1850,21 @@
       ctx.roundRect(px + 1, y - 7, 11, 7, 3);
       ctx.fill();
 
-      ctx.fillStyle = "#e63946";
+      // شورت ورزشی مطابق کشور انتخاب‌شده
+      ctx.fillStyle = kit.shorts;
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 37 + crouch, 20, 15, 3);
       ctx.fill();
 
-      ctx.fillStyle = "#ffbe0b";
+      // پیراهن ورزشی مطابق کشور انتخاب‌شده
+      ctx.fillStyle = kit.jersey;
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 60 + crouch, 20, 25, 5);
       ctx.fill();
+
+      // نوار طرح روی پیراهن
+      ctx.fillStyle = kit.stripe;
+      ctx.fillRect(px - 10, y - 50 + crouch, 20, 4.5);
 
       var headY = y - 70 + crouch;
       ctx.fillStyle = "#e09f67";
@@ -1467,7 +1883,8 @@
         ctx.fill();
       }
 
-      ctx.strokeStyle = "#e63946";
+      // هدبند مطابق رنگ کشور
+      ctx.strokeStyle = kit.band;
       ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.moveTo(px - 8, headY - 4);
@@ -1623,18 +2040,7 @@
       requestAnimationFrame(renderLoop);
     }
 
-    function shareRecord() {
-      var best = Math.max(score, getLocalBest());
-      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
-      var shareText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇\n" + gameLink + "\n\nکانال بازی‌ها: " + CHANNEL_ID;
-      if (navigator.share) {
-        navigator.share({ text: shareText }).catch(function() {});
-      } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(shareText);
-        alert("متن چالش و لینک بازی کپی شد! در چت یا گروه بله پیست کن.");
-      }
-    }
-
+    updateCoinAndFlagHud();
     resetGame();
     lastTime = performance.now();
     requestAnimationFrame(renderLoop);
