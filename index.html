@@ -374,7 +374,6 @@
   </style>
 </head>
 <body>
-  <!-- نوار بالای بازی: گوشه راست پرچم کشور و سکه، گوشه چپ دکمه‌ها و امتیاز -->
   <div class="top-hud">
     <div class="right-hud-group">
       <div class="country-badge" onclick="openShopModal()" title="تغییر لباس کشور">
@@ -508,7 +507,6 @@
         }
       : { id: "guest", name: "بازیکن مهمان", photo: "" };
 
-    // باز کردن مستقیم کانال با لمس دکمه پایین صفحه
     function openChannel(e) {
       if (e) e.preventDefault();
       if (webapp) {
@@ -526,7 +524,6 @@
       window.open(CHANNEL_URL, "_blank");
     }
 
-    // فوروارد مستقیم پیام کل‌کل در پیام‌رسان بله
     function forwardChallenge() {
       var best = Math.max(score, getLocalBest());
       var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
@@ -1491,7 +1488,7 @@
           b.fallingThroughNet = true;
           b.vx *= 0.35;
           score += 1;
-          addCoins(1); // افزودن ۱ سکه برای خرید لباس کشورها
+          addCoins(1);
           document.getElementById("hudScore").textContent = String(score);
 
           chainStrands[0].vel -= 9.5;
@@ -1567,7 +1564,7 @@
     }
 
     // ==========================================
-    // ۷. رندر صحنه و لباس بازیکن مطابق کشور انتخاب‌شده
+    // ۷. رندر صحنه، پرچم روی دیوار راست و لباس بازیکن
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1673,6 +1670,139 @@
         ctx.roundRect(sx - 34, H - 6, 68, 30, 14);
         ctx.fill();
       }
+    }
+
+    // رسم پرچم کشور خریداری‌شده روی دیوار سمت راست سالن (در کادر مشخص‌شده)
+    function drawWallCountryFlag() {
+      var kit = getEquippedKit();
+      if (!kit || kit.id === "default") return;
+
+      var fw = Math.min(112, W * 0.31);
+      var fh = fw * 0.62;
+      var fx = W - fw - 14;
+      var fy = H * 0.195;
+
+      ctx.save();
+
+      // سایه قاب پرچم روی دیوار سالن
+      ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
+      ctx.beginPath();
+      ctx.roundRect(fx + 3, fy + 4, fw, fh, 6);
+      ctx.fill();
+
+      // برش داخل قاب پرچم
+      ctx.beginPath();
+      ctx.roundRect(fx, fy, fw, fh, 6);
+      ctx.clip();
+
+      if (kit.id === "brazil") {
+        ctx.fillStyle = "#009c3b";
+        ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#ffdf00";
+        ctx.beginPath();
+        ctx.moveTo(fx + fw * 0.5, fy + fh * 0.1);
+        ctx.lineTo(fx + fw * 0.92, fy + fh * 0.5);
+        ctx.lineTo(fx + fw * 0.5, fy + fh * 0.9);
+        ctx.lineTo(fx + fw * 0.08, fy + fh * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#002776";
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.48, fy + fh * 0.58, fh * 0.22, -Math.PI * 0.85, -Math.PI * 0.15);
+        ctx.stroke();
+      } else if (kit.id === "iran") {
+        ctx.fillStyle = "#239f40";
+        ctx.fillRect(fx, fy, fw, fh / 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
+        ctx.fillStyle = "#da0000";
+        ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
+        // نشان وسط پرچم ایران
+        ctx.strokeStyle = "#da0000";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.1, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(fx + fw * 0.5, fy + fh * 0.37);
+        ctx.lineTo(fx + fw * 0.5, fy + fh * 0.63);
+        ctx.stroke();
+      } else if (kit.id === "argentina") {
+        ctx.fillStyle = "#74acdf";
+        ctx.fillRect(fx, fy, fw, fh / 3);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
+        ctx.fillStyle = "#74acdf";
+        ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
+        ctx.fillStyle = "#f6b40e";
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.11, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (kit.id === "portugal") {
+        ctx.fillStyle = "#006600";
+        ctx.fillRect(fx, fy, fw * 0.38, fh);
+        ctx.fillStyle = "#da291c";
+        ctx.fillRect(fx + fw * 0.38, fy, fw * 0.62, fh);
+        ctx.fillStyle = "#ffcc00";
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.38, fy + fh * 0.5, fh * 0.17, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.38, fy + fh * 0.5, fh * 0.09, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (kit.id === "france") {
+        ctx.fillStyle = "#002395";
+        ctx.fillRect(fx, fy, fw / 3, fh);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#ed2939";
+        ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
+      } else if (kit.id === "italy") {
+        ctx.fillStyle = "#009246";
+        ctx.fillRect(fx, fy, fw / 3, fh);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#ce2b37";
+        ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
+      } else if (kit.id === "england") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#ce1124";
+        ctx.fillRect(fx + fw * 0.43, fy, fw * 0.14, fh);
+        ctx.fillRect(fx, fy + fh * 0.39, fw, fh * 0.22);
+      } else if (kit.id === "japan") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#bc002d";
+        ctx.beginPath();
+        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.27, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // جلوه شیشه‌ای ملایم روی پرچم
+      var sheen = ctx.createLinearGradient(fx, fy, fx, fy + fh);
+      sheen.addColorStop(0, "rgba(255, 255, 255, 0.18)");
+      sheen.addColorStop(0.5, "rgba(255, 255, 255, 0)");
+      sheen.addColorStop(1, "rgba(0, 0, 0, 0.15)");
+      ctx.fillStyle = sheen;
+      ctx.fillRect(fx, fy, fw, fh);
+
+      ctx.restore();
+
+      // کادر دور پرچم روی دیوار
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(fx, fy, fw, fh, 6);
+      ctx.stroke();
+      ctx.restore();
     }
 
     function drawWallScoreboardAndWind() {
@@ -1839,7 +1969,6 @@
       ctx.ellipse(px, floor + 2, 18, 5, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // پاها و کفش
       ctx.fillStyle = "#e09f67";
       ctx.fillRect(px - 8, y - 24 + crouch, 6, 18 - crouch);
       ctx.fillRect(px + 2, y - 24 + crouch, 6, 18 - crouch);
@@ -1850,19 +1979,16 @@
       ctx.roundRect(px + 1, y - 7, 11, 7, 3);
       ctx.fill();
 
-      // شورت ورزشی مطابق کشور انتخاب‌شده
       ctx.fillStyle = kit.shorts;
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 37 + crouch, 20, 15, 3);
       ctx.fill();
 
-      // پیراهن ورزشی مطابق کشور انتخاب‌شده
       ctx.fillStyle = kit.jersey;
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 60 + crouch, 20, 25, 5);
       ctx.fill();
 
-      // نوار طرح روی پیراهن
       ctx.fillStyle = kit.stripe;
       ctx.fillRect(px - 10, y - 50 + crouch, 20, 4.5);
 
@@ -1883,7 +2009,6 @@
         ctx.fill();
       }
 
-      // هدبند مطابق رنگ کشور
       ctx.strokeStyle = kit.band;
       ctx.lineWidth = 3.5;
       ctx.beginPath();
@@ -2015,6 +2140,7 @@
       ctx.clearRect(0, 0, W, H);
       drawArenaBackground();
       drawWallScoreboardAndWind();
+      drawWallCountryFlag();
       drawBackboard();
 
       activeBalls.forEach(function(b) {
