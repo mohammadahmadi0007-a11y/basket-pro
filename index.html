@@ -463,10 +463,11 @@
     }
 
     // ==========================================
-    // ۲. افکت‌های صوتی (شامل صدای واقعی زنجیر فلزی)
+    // ۲. موتور صدای واقعی زنجیر فلزی (Web Audio API)
     // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
+    var lastChainClinkTime = 0;
 
     function initAudio() {
       try {
@@ -517,50 +518,95 @@
       } catch (e) {}
     }
 
-    // صدای برخورد توپ با تور زنجیری فلزی + تشویق
-    function playChainScoreSound(isClean) {
+    // صدای واقعی ساییده شدن و برخورد حلقه‌های زنجیر فلزی (Metallic Chain Rattle)
+    function playChainRattle(intensity) {
+      if (!soundEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+      var now = audioCtx.currentTime;
+      if (now - lastChainClinkTime < 0.08) return;
+      lastChainClinkTime = now;
+
+      try {
+        var vol = Math.min(1, Math.max(0.25, intensity || 0.8));
+        var duration = 0.34;
+        var sampleRate = audioCtx.sampleRate;
+        var totalSamples = Math.floor(sampleRate * duration);
+
+        // ساخت بافر صدای برخوردهای ریز و پی‌درپی حلقه‌های زنجیر به هم
+        var buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
+        var data = buffer.getChannelData(0);
+
+        // ۲۲ ضربه میکروسکوپی فلزی در طول ۰.۳۴ ثانیه برای شبیه‌سازی صدای زنجیر واقعی
+        var clinkCount = 22;
+        for (var c = 0; c < clinkCount; c++) {
+          var startSample = Math.floor((c / clinkCount) * totalSamples * 0.78 + Math.random() * 140);
+          var clinkLen = Math.floor(sampleRate * (0.012 + Math.random() * 0.018));
+          var clinkAmp = (1 - c / (clinkCount * 1.15)) * (0.55 + Math.random() * 0.45);
+          // فرکانس تشدید فلزی حلقه زنجیر
+          var f1 = 3100 + Math.random() * 2600;
+          var f2 = 5400 + Math.random() * 3200;
+
+          for (var s = 0; s < clinkLen && (startSample + s) < totalSamples; s++) {
+            var t = s / sampleRate;
+            var env = Math.exp(-t * 210);
+            var noise = (Math.random() * 2 - 1) * 0.65;
+            var ring = Math.sin(2 * Math.PI * f1 * t) * 0.45 + Math.sin(2 * Math.PI * f2 * t) * 0.35;
+            data[startSample + s] += (noise + ring) * env * clinkAmp;
+          }
+        }
+
+        var source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+
+        // فیلتر بالاگذر و میان‌گذر برای جنس صدای فولاد و زنجیر
+        var hpFilter = audioCtx.createBiquadFilter();
+        hpFilter.type = "highpass";
+        hpFilter.frequency.value = 1800;
+
+        var peakFilter = audioCtx.createBiquadFilter();
+        peakFilter.type = "peaking";
+        peakFilter.frequency.value = 4200;
+        peakFilter.Q.value = 2.2;
+        peakFilter.gain.value = 7;
+
+        var masterGain = audioCtx.createGain();
+        masterGain.gain.setValueAtTime(0.55 * vol, now);
+        masterGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+        source.connect(hpFilter);
+        hpFilter.connect(peakFilter);
+        peakFilter.connect(masterGain);
+        masterGain.connect(audioCtx.destination);
+        source.start(now);
+      } catch (e) {}
+    }
+
+    // صدای گل شدن: برخورد کامل با ۴ رشته زنجیر + تشویق تماشاچی‌ها
+    function playScoreWithChainAndCrowd(isClean) {
+      playChainRattle(1.0);
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
       try {
         var now = audioCtx.currentTime;
-        // جیرینگ حلقه‌های فلزی زنجیر (چند پالس فرکانس بالا با تأخیر کوتاه)
-        var chainFreqs = [2650, 3820, 4950, 3120, 5600, 4180, 2900, 5200];
-        for (var k = 0; k < chainFreqs.length; k++) {
-          var t = now + k * 0.028;
-          var osc = audioCtx.createOscillator();
-          var gain = audioCtx.createGain();
-          osc.type = k % 2 === 0 ? "triangle" : "sine";
-          osc.frequency.setValueAtTime(chainFreqs[k], t);
-          osc.frequency.exponentialRampToValueAtTime(chainFreqs[k] * 0.78, t + 0.09);
-
-          gain.gain.setValueAtTime(0.14, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.095);
-
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(t);
-          osc.stop(t + 0.1);
-        }
-
-        // صدای تشویق تماشاچی‌ها در پس‌زمینه
-        var clen = Math.floor(audioCtx.sampleRate * 0.6);
+        var clen = Math.floor(audioCtx.sampleRate * 0.65);
         var cbuf = audioCtx.createBuffer(1, clen, audioCtx.sampleRate);
         var cd = cbuf.getChannelData(0);
         for (var j = 0; j < clen; j++) {
-          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.1)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.25));
+          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.1)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.26));
           cd[j] = (Math.random() * 2 - 1) * env;
         }
         var csrc = audioCtx.createBufferSource();
         csrc.buffer = cbuf;
         var cflt = audioCtx.createBiquadFilter();
         cflt.type = "lowpass";
-        cflt.frequency.value = isClean ? 1350 : 900;
+        cflt.frequency.value = isClean ? 1350 : 920;
         var cg = audioCtx.createGain();
-        cg.gain.setValueAtTime(isClean ? 0.26 : 0.16, now);
-        cg.gain.exponentialRampToValueAtTime(0.005, now + 0.59);
+        cg.gain.setValueAtTime(isClean ? 0.28 : 0.18, now + 0.04);
+        cg.gain.exponentialRampToValueAtTime(0.005, now + 0.64);
         csrc.connect(cflt); cflt.connect(cg); cg.connect(audioCtx.destination);
-        csrc.start(now);
+        csrc.start(now + 0.04);
       } catch (e) {}
     }
 
@@ -582,7 +628,7 @@
     }
 
     // ==========================================
-    // ۳. موتور گرافیک و فیزیک
+    // ۳. موتور گرافیک و فیزیک ۴ رشته زنجیر مشکی
     // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
@@ -607,8 +653,7 @@
     var timeLeft = 21.0;
     var lastTime = 0;
 
-    // باد ملایم و قابل کنترل (درجه ۱ تا ۳) که بعد از هر ضربه تغییر می‌کند
-    var windDir = -1;
+    var windDir = 1;
     var windLevel = 1;
 
     function courtFloorY() { return H * 0.765; }
@@ -617,6 +662,14 @@
       var jumpOff = Math.sin(playerJump * Math.PI) * 18;
       return { x: playerX() + 14, y: courtFloorY() - 56 - jumpOff };
     }
+
+    // فیزیک مستقل برای ۴ شاخه زنجیر مشکی آویزان زیر حلقه
+    var chainStrands = [
+      { angle: 0, vel: 0 },
+      { angle: 0, vel: 0 },
+      { angle: 0, vel: 0 },
+      { angle: 0, vel: 0 }
+    ];
 
     var hoop = {
       x: 0,
@@ -627,7 +680,7 @@
       boardH: 64,
       rimRx: 21,
       rimRy: 5,
-      netAnim: 0
+      chainLength: 29
     };
 
     var activeBalls = [];
@@ -682,13 +735,11 @@
       hoop.targetY = ny;
     }
 
-    // تغییر جهت و شدت باد تحت هر شرایطی بعد از هر ضربه
     function randomizeWindAfterShot() {
       var prevDir = windDir;
       var prevLevel = windLevel;
       windDir = Math.random() < 0.5 ? -1 : 1;
-      windLevel = Math.floor(Math.random() * 3) + 1; // درجه ۱، ۲ یا ۳
-      // اگر دقیقاً مثل قبل درآمد، یکی را عوض کن تا بازیکن تغییر باد بعد از هر ضربه را ببیند
+      windLevel = Math.floor(Math.random() * 3) + 1;
       if (windDir === prevDir && windLevel === prevLevel) {
         windLevel = (prevLevel % 3) + 1;
       }
@@ -708,6 +759,10 @@
       hoop.y = H * 0.36;
       hoop.targetX = hoop.x;
       hoop.targetY = hoop.y;
+      for (var c = 0; c < 4; c++) {
+        chainStrands[c].angle = 0;
+        chainStrands[c].vel = 0;
+      }
       gameState = "READY";
       document.getElementById("hudScore").textContent = "0";
       document.getElementById("gameOverScreen").classList.add("hidden");
@@ -814,7 +869,8 @@
         fallingThroughNet: false,
         shotWindDir: windDir,
         shotWindLevel: windLevel,
-        windChangedForThisShot: false
+        windChangedForThisShot: false,
+        touchedChain: false
       });
 
       hasBallInHand = false;
@@ -831,8 +887,14 @@
     window.addEventListener("touchmove", handleMove, { passive: true });
     window.addEventListener("touchend", handleEnd);
 
+    // موقعیت افقی اتصال ۴ شاخه زنجیر مشکی روی حلقه
+    function getChainAnchorX(index) {
+      var offsets = [-14, -5, 5, 14];
+      return hoop.x + offsets[index];
+    }
+
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی
+    // ۴. به‌روزرسانی منطق بازی و فیزیک زنجیرها
     // ==========================================
     function update(dt) {
       if (Math.random() < 0.08) {
@@ -852,15 +914,28 @@
       popups = popups.filter(function(p) { return p.life > 0; });
 
       if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.8);
-      if (hoop.netAnim > 0) hoop.netAnim = Math.max(0, hoop.netAnim - dt * 3.2);
 
       if (!hasBallInHand) {
         reloadTimer -= dt;
         if (reloadTimer <= 0) hasBallInHand = true;
       }
 
+      var prevHoopX = hoop.x;
       hoop.x += (hoop.targetX - hoop.x) * Math.min(1, dt * 10);
       hoop.y += (hoop.targetY - hoop.y) * Math.min(1, dt * 10);
+      var hoopMoveVx = (hoop.x - prevHoopX) / Math.max(0.001, dt);
+
+      // فیزیک آونگ طبیعی برای هر یک از ۴ شاخه زنجیر مشکی
+      for (var c = 0; c < 4; c++) {
+        var st = chainStrands[c];
+        // نیروی بازگرداننده گرانش + میرایی طبیعی زنجیر فلزی
+        var springAcc = -48 * st.angle - 5.2 * st.vel - (hoopMoveVx * 0.012);
+        st.vel += springAcc * dt;
+        st.angle += st.vel * dt;
+        // محدود کردن زاویه چرخش زنجیر تا طبیعی بماند
+        if (st.angle > 0.75) { st.angle = 0.75; st.vel *= -0.3; }
+        if (st.angle < -0.75) { st.angle = -0.75; st.vel *= -0.3; }
+      }
 
       if (gameState === "PLAYING") {
         timeLeft -= dt;
@@ -872,27 +947,26 @@
       }
 
       var gravity = 980;
+      var rimY = hoop.y + 10;
 
       for (var i = activeBalls.length - 1; i >= 0; i--) {
         var b = activeBalls[i];
         b.age += dt;
         b.prevY = b.y;
 
-        // نیروی باد ملایم و کنترل‌شده (درجه ۱: ~12px، درجه ۲: ~24px، درجه ۳: ~36px انحراف)
         var windForce = b.shotWindDir * b.shotWindLevel * 32;
         b.vx += windForce * dt;
         b.vy += gravity * dt;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
 
-        // چرخش توپ در جهت باد
         b.spinSpeed += (b.shotWindDir * b.shotWindLevel * 1.6) * dt;
         b.rot += b.spinSpeed * dt;
 
-        var rimY = hoop.y + 10;
         var leftRimX = hoop.x - hoop.rimRx;
         var rightRimX = hoop.x + hoop.rimRx;
 
+        // برخورد با لبه‌های حلقه
         if (!b.scored && b.vy > 0 && Math.abs(b.y - rimY) < 13) {
           var distL = Math.hypot(b.x - leftRimX, b.y - rimY);
           var distR = Math.hypot(b.x - rightRimX, b.y - rimY);
@@ -912,7 +986,32 @@
           }
         }
 
-        // گل شدن و برخورد با زنجیر
+        // برخورد فیزیکی توپ با ۴ شاخه زنجیر مشکی (چه هنگام گل شدن چه هنگام تماس از زیر/کنار)
+        if (b.y > rimY - 4 && b.y < rimY + hoop.chainLength + 10) {
+          for (var s = 0; s < 4; s++) {
+            var anchorX = getChainAnchorX(s);
+            var strandTipX = anchorX + Math.sin(chainStrands[s].angle) * hoop.chainLength;
+            var strandMidX = (anchorX + strandTipX) * 0.5;
+            var dxChain = strandMidX - b.x;
+
+            if (Math.abs(dxChain) < b.r + 4) {
+              // زنجیر به سمت مخالف توپ کنار می‌رود (باز شدن زنجیرها هنگام عبور توپ)
+              var pushDir = dxChain >= 0 ? 1 : -1;
+              if (Math.abs(dxChain) < 2) pushDir = s < 2 ? -1 : 1;
+
+              chainStrands[s].vel += pushDir * 14.5 * dt * 60;
+              // اصطکاک ملایم زنجیر روی سرعت افقی توپ
+              b.vx *= (1 - 1.8 * dt);
+
+              if (!b.touchedChain) {
+                b.touchedChain = true;
+                playChainRattle(0.75);
+              }
+            }
+          }
+        }
+
+        // تشخیص گل شدن
         if (
           !b.scored &&
           b.vy > 0 &&
@@ -923,16 +1022,21 @@
         ) {
           b.scored = true;
           b.fallingThroughNet = true;
-          b.vx *= 0.25;
+          b.vx *= 0.22;
           b.x = hoop.x + (b.x - hoop.x) * 0.35;
           score += 1;
           document.getElementById("hudScore").textContent = String(score);
-          hoop.netAnim = 1.0;
+
+          // باز شدن طبیعی ۴ رشته زنجیر به بیرون هنگام عبور توپ از دهانه حلقه
+          chainStrands[0].vel -= 9.5;
+          chainStrands[1].vel -= 5.2;
+          chainStrands[2].vel += 5.2;
+          chainStrands[3].vel += 9.5;
 
           var isClean = !b.touchedRim;
           var addSec = isClean ? 6 : 3;
           timeLeft = Math.min(60, timeLeft + addSec);
-          playChainScoreSound(isClean);
+          playScoreWithChainAndCrowd(isClean);
 
           if (isClean) {
             spawnPopup(["+" + addSec + " SEC", "CLEAN", "SHOT"], hoop.x + 56, hoop.y + 8);
@@ -950,7 +1054,6 @@
         var floor = courtFloorY() - 8;
         if (b.y > floor) {
           b.y = floor;
-          // اگر ضربه گل نشد و به زمین خورد، باز هم باد تغییر می‌کند
           if (!b.windChangedForThisShot) {
             b.windChangedForThisShot = true;
             randomizeWindAfterShot();
@@ -977,7 +1080,7 @@
     }
 
     // ==========================================
-    // ۵. رندر صحنه و تور زنجیری فلزی
+    // ۵. رندر صحنه و ۴ رشته زنجیر مشکی
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1002,8 +1105,9 @@
       ctx.stroke();
 
       var now = performance.now() * 0.005;
+      var anyChainMoving = Math.abs(chainStrands[0].vel) > 0.4 || Math.abs(chainStrands[3].vel) > 0.4;
       crowdRows.forEach(function(c) {
-        var cheer = hoop.netAnim > 0 ? Math.sin(now * 3 + c.phase) * 4 : Math.sin(now + c.phase) * 1;
+        var cheer = anyChainMoving ? Math.sin(now * 3 + c.phase) * 4 : Math.sin(now + c.phase) * 1;
         ctx.fillStyle = c.color;
         ctx.beginPath();
         ctx.arc(c.x, c.y + cheer, c.r, 0, Math.PI * 2);
@@ -1144,7 +1248,7 @@
       ctx.restore();
     }
 
-    function drawBackboardAndHoop() {
+    function drawBackboard() {
       var bx = hoop.x - hoop.boardW / 2;
       var by = hoop.y - hoop.boardH / 2;
 
@@ -1167,66 +1271,54 @@
       ctx.strokeStyle = "#18181b";
       ctx.lineWidth = 2.5;
       ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
+    }
 
-      // تور زنجیری فلزی آویزان زیر حلقه
+    // رسم ۴ شاخه زنجیر مشکی آویزان و حلقه نارنجی
+    function drawChainsAndRim() {
       var rimY = hoop.y + 10;
-      var topL = hoop.x - hoop.rimRx + 2;
-      var topR = hoop.x + hoop.rimRx - 2;
-      var netH = 31;
-      var sway = Math.sin(hoop.netAnim * Math.PI * 4) * 7 * hoop.netAnim;
+      var linksCount = 6;
+      var linkStep = hoop.chainLength / linksCount;
 
-      var strands = 6;
-      var linksPerStrand = 5;
+      // رسم ۴ شاخه زنجیر مشکی آویزان با انحنای طبیعی هنگام برخورد توپ
+      for (var s = 0; s < 4; s++) {
+        var anchorX = getChainAnchorX(s);
+        var ang = chainStrands[s].angle;
 
-      // کشیدن حلقه‌های زنجیر فلزی نقره‌ای و تیره
-      for (var i = 0; i <= strands; i++) {
-        var t = i / strands;
-        var sx = topL + (topR - topL) * t;
-        var ex = topL + 6 + (topR - topL - 12) * t + sway;
-
-        for (var l = 0; l < linksPerStrand; l++) {
-          var lt1 = l / linksPerStrand;
-          var lt2 = (l + 0.85) / linksPerStrand;
-          var lx = sx + (ex - sx) * ((lt1 + lt2) * 0.5);
-          var ly = rimY + 2 + netH * ((lt1 + lt2) * 0.5);
+        for (var l = 0; l < linksCount; l++) {
+          // هر حلقه پایین‌تر کمی بیشتر انحنا می‌گیرد تا حرکت زنجیر نرم و شلاقی باشد
+          var ratio = (l + 0.6) / linksCount;
+          var bend = ang * (0.65 + 0.55 * ratio);
+          var dist = (l + 0.5) * linkStep;
+          var lx = anchorX + Math.sin(bend) * dist;
+          var ly = rimY + 2 + Math.cos(bend) * dist;
 
           ctx.save();
           ctx.translate(lx, ly);
-          // سایه تیره حلقه زنجیر
-          ctx.strokeStyle = "#374151";
-          ctx.lineWidth = 2.4;
+          ctx.rotate(-bend);
+
+          // بدنه حلقه زنجیر مشکی
+          ctx.strokeStyle = "#0d0d10";
+          ctx.lineWidth = 2.5;
           ctx.beginPath();
           if (l % 2 === 0) {
-            ctx.ellipse(0, 0, 1.8, 3.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, 1.8, 3.1, 0, 0, Math.PI * 2);
           } else {
-            ctx.ellipse(0, 0, 2.5, 2.2, 0, 0, Math.PI * 2);
+            ctx.ellipse(0, 0, 2.3, 2.2, 0, 0, Math.PI * 2);
           }
           ctx.stroke();
 
-          // درخشش فلزی نقره‌ای روی زنجیر
-          ctx.strokeStyle = "#e5e7eb";
-          ctx.lineWidth = 1.1;
+          // هایلایت ظریف تیره روی زنجیر مشکی برای تفکیک حلقه‌ها
+          ctx.strokeStyle = "#3f3f46";
+          ctx.lineWidth = 0.9;
           ctx.beginPath();
-          ctx.arc(-0.4, -0.5, 1.5, 0, Math.PI);
+          ctx.arc(-0.4, -0.5, 1.3, 0, Math.PI);
           ctx.stroke();
+
           ctx.restore();
         }
       }
 
-      // اتصال‌های مورب زنجیر بین رشته‌ها
-      ctx.strokeStyle = "#9ca3af";
-      ctx.lineWidth = 1.3;
-      for (var r = 1; r <= 3; r++) {
-        var rt = r / 3.4;
-        var ny = rimY + 2 + netH * rt;
-        var inset = rt * 6;
-        ctx.beginPath();
-        ctx.moveTo(topL + inset + sway * rt, ny);
-        ctx.lineTo(topR - inset + sway * rt, ny);
-        ctx.stroke();
-      }
-
-      // حلقه نارنجی
+      // حلقه نارنجی روی اتصال بالای زنجیرها
       ctx.strokeStyle = "#ff4500";
       ctx.lineWidth = 4.5;
       ctx.beginPath();
@@ -1413,8 +1505,9 @@
       ctx.clearRect(0, 0, W, H);
       drawArenaBackground();
       drawWallScoreboardAndWind();
-      drawBackboardAndHoop();
+      drawBackboard();
 
+      // توپ‌های در حال عبور از حلقه پشت زنجیرهای جلویی رسم می‌شوند تا برخورد با زنجیر طبیعی دیده شود
       activeBalls.forEach(function(b) {
         if (b.fallingThroughNet) {
           var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
@@ -1422,6 +1515,7 @@
         }
       });
 
+      drawChainsAndRim();
       drawPlayerCharacter();
 
       activeBalls.forEach(function(b) {
