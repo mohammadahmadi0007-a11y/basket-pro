@@ -463,7 +463,7 @@
     }
 
     // ==========================================
-    // ۲. موتور صدای واقعی زنجیر فلزی (Web Audio API)
+    // ۲. موتور صدای واقعی (برخورد توپ بسکتبال به سالن و زنجیر)
     // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
@@ -484,20 +484,62 @@
       document.getElementById("soundToggle").textContent = soundEnabled ? "🔊" : "🔇";
     }
 
-    function playThrowSound() {
+    function playFloorBounceSound(intensity) {
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
+      var vol = Math.min(1, Math.max(0.06, intensity || 0.7));
+      if (vol < 0.08) return;
+
       try {
-        var osc = audioCtx.createOscillator();
-        var g = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(340, audioCtx.currentTime + 0.12);
-        g.gain.setValueAtTime(0.16, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.13);
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.13);
+        var now = audioCtx.currentTime;
+
+        var bodyOsc = audioCtx.createOscillator();
+        var bodyGain = audioCtx.createGain();
+        bodyOsc.type = "sine";
+        bodyOsc.frequency.setValueAtTime(148 + vol * 24, now);
+        bodyOsc.frequency.exponentialRampToValueAtTime(52, now + 0.13);
+        bodyGain.gain.setValueAtTime(0.55 * vol, now);
+        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        bodyOsc.connect(bodyGain);
+        bodyGain.connect(audioCtx.destination);
+        bodyOsc.start(now);
+        bodyOsc.stop(now + 0.16);
+
+        var ringOsc = audioCtx.createOscillator();
+        var ringGain = audioCtx.createGain();
+        ringOsc.type = "triangle";
+        ringOsc.frequency.setValueAtTime(245, now);
+        ringOsc.frequency.exponentialRampToValueAtTime(165, now + 0.09);
+        ringGain.gain.setValueAtTime(0.22 * vol, now);
+        ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        ringOsc.connect(ringGain);
+        ringGain.connect(audioCtx.destination);
+        ringOsc.start(now);
+        ringOsc.stop(now + 0.11);
+
+        var slapLen = Math.floor(audioCtx.sampleRate * 0.045);
+        var slapBuf = audioCtx.createBuffer(1, slapLen, audioCtx.sampleRate);
+        var slapData = slapBuf.getChannelData(0);
+        for (var i = 0; i < slapLen; i++) {
+          slapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.011));
+        }
+        var slapSrc = audioCtx.createBufferSource();
+        slapSrc.buffer = slapBuf;
+
+        var slapFilter = audioCtx.createBiquadFilter();
+        slapFilter.type = "bandpass";
+        slapFilter.frequency.value = 820;
+        slapFilter.Q.value = 1.4;
+
+        var slapGain = audioCtx.createGain();
+        slapGain.gain.setValueAtTime(0.32 * vol, now);
+        slapGain.gain.exponentialRampToValueAtTime(0.005, now + 0.045);
+
+        slapSrc.connect(slapFilter);
+        slapFilter.connect(slapGain);
+        slapGain.connect(audioCtx.destination);
+        slapSrc.start(now);
       } catch (e) {}
     }
 
@@ -778,9 +820,6 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // نشانه‌گیری معکوس (تیرکمانی) نرم در هر دو جهت:
-    // انگشت به چپ -> خط‌چین به راست | انگشت به راست -> خط‌چین به چپ
-    // انگشت به بالا -> خط‌چین به پایین | انگشت به پایین -> خط‌چین به بالا
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
@@ -850,13 +889,15 @@
         shotWindLevel: windLevel,
         windChangedForThisShot: false,
         touchedChain: false,
-        rimCooldown: 0
+        rimCooldown: 0,
+        floorBounces: 0,
+        fading: false,
+        alpha: 1.0
       });
 
       hasBallInHand = false;
       reloadTimer = 0.28;
       playerJump = 1.0;
-      playThrowSound();
     }
 
     canvas.addEventListener("pointerdown", handleStart);
@@ -905,7 +946,7 @@
     }
 
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی
+    // ۴. به‌روزرسانی منطق بازی (۲ برخورد با زمین و محو شدن تدریجی)
     // ==========================================
     function update(dt) {
       if (Math.random() < 0.08) {
@@ -963,6 +1004,15 @@
         b.prevY = b.y;
         if (b.rimCooldown > 0) b.rimCooldown -= dt;
 
+        // محو شدن تدریجی توپ بعد از برخورد دوم با زمین
+        if (b.fading) {
+          b.alpha -= dt * 2.1;
+          if (b.alpha <= 0) {
+            activeBalls.splice(i, 1);
+            continue;
+          }
+        }
+
         var windForce = b.shotWindDir * b.shotWindLevel * 32;
         b.vx += windForce * dt;
         b.vy += gravity * dt;
@@ -975,7 +1025,7 @@
         var leftRimX = hoop.x - hoop.rimRx;
         var rightRimX = hoop.x + hoop.rimRx;
 
-        if (!b.scored) {
+        if (!b.scored && !b.fading) {
           collideBallWithRimPoint(b, leftRimX, rimY);
           collideBallWithRimPoint(b, rightRimX, rimY);
         }
@@ -1004,6 +1054,7 @@
 
         if (
           !b.scored &&
+          !b.fading &&
           b.vy > 0 &&
           b.prevY <= rimY &&
           b.y >= rimY &&
@@ -1039,6 +1090,7 @@
           }
         }
 
+        // برخورد با کف پارکت سالن: فقط ۲ بار و بعد محو شدن تدریجی
         var floor = courtFloorY() - 8;
         if (b.y > floor) {
           b.y = floor;
@@ -1046,18 +1098,30 @@
             b.windChangedForThisShot = true;
             randomizeWindAfterShot();
           }
-          if (Math.abs(b.vy) > 90) {
-            b.vy = -b.vy * 0.52;
-            b.vx *= 0.78;
-            b.spinSpeed = b.vx * 0.06;
+
+          if (b.vy > 40) {
+            b.floorBounces += 1;
+            var impactRatio = Math.min(1, b.vy / 820);
+            playFloorBounceSound(impactRatio);
+
+            if (b.floorBounces === 1) {
+              b.vy = -b.vy * 0.68;
+              b.vx *= 0.86;
+              b.spinSpeed = b.vx * 0.07;
+            } else {
+              b.vy = -b.vy * 0.48;
+              b.vx *= 0.85;
+              b.spinSpeed = b.vx * 0.07;
+              b.fading = true;
+            }
           } else {
             b.vy = 0;
-            b.vx *= 0.92;
-            b.spinSpeed = b.vx * 0.06;
+            b.vx *= 0.94;
+            b.fading = true;
           }
         }
 
-        if (b.age > 3.2 || b.x < -80 || b.x > W + 80) {
+        if (b.age > 5.0 || b.x < -80 || b.x > W + 80) {
           if (!b.windChangedForThisShot) {
             b.windChangedForThisShot = true;
             randomizeWindAfterShot();
@@ -1397,12 +1461,13 @@
 
       if (hasBallInHand) {
         var hp = handPos();
-        drawSingleBall(hp.x, hp.y + crouch, 13.5, 0.35);
+        drawSingleBall(hp.x, hp.y + crouch, 13.5, 0.35, 1.0);
       }
     }
 
-    function drawSingleBall(x, y, r, rot) {
+    function drawSingleBall(x, y, r, rot, alpha) {
       ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, alpha === undefined ? 1.0 : alpha));
       ctx.translate(x, y);
 
       var g = ctx.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
@@ -1414,6 +1479,7 @@
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
 
+      ctx.save();
       ctx.beginPath();
       ctx.arc(0, 0, r - 0.5, 0, Math.PI * 2);
       ctx.clip();
@@ -1443,16 +1509,14 @@
       ctx.moveTo(r * 0.62, -r * 0.85);
       ctx.quadraticCurveTo(r * 0.18, 0, r * 0.62, r * 0.85);
       ctx.stroke();
-
       ctx.restore();
 
-      ctx.save();
-      ctx.translate(x, y);
       ctx.strokeStyle = "rgba(38, 11, 3, 0.7)";
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.stroke();
+
       ctx.restore();
     }
 
@@ -1512,7 +1576,7 @@
       activeBalls.forEach(function(b) {
         if (b.fallingThroughNet) {
           var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
-          drawSingleBall(b.x, b.y, b.r * scale, b.rot);
+          drawSingleBall(b.x, b.y, b.r * scale, b.rot, b.alpha);
         }
       });
 
@@ -1522,7 +1586,7 @@
       activeBalls.forEach(function(b) {
         if (!b.fallingThroughNet) {
           var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
-          drawSingleBall(b.x, b.y, b.r * scale, b.rot);
+          drawSingleBall(b.x, b.y, b.r * scale, b.rot, b.alpha);
         }
       });
 
