@@ -682,10 +682,12 @@
     var reloadTimer = 0;
     var playerJump = 0;
 
-    // نشانه گیری کاملاً آزاد در تمام جهات و ارتفاع‌ها
+    // نشانه گیری نرم و از راستای سبد
     var isDragging = false;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
+    var baseAimVx = 0;
+    var baseAimVy = 0;
     var aimVx = 0;
     var aimVy = 0;
 
@@ -778,30 +780,40 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // کنترل کاملاً آزاد و روان خط‌چین در تمام نقاط صفحه
+    // محاسبه قوس پایه دقیقاً در راستای سبد (بدون تیزی زیاد از پایین)
+    function computeBaseHoopAim() {
+      var hp = handPos();
+      var gravity = 980;
+      // زمان پرواز متعادل (0.78 ثانیه) تا قوس پرتاب نرم و غیرتیز باشد
+      var flightT = 0.78;
+      var targetX = hoop.targetX;
+      var targetY = hoop.targetY + 8;
+
+      baseAimVx = (targetX - hp.x) / flightT;
+      baseAimVy = (targetY - hp.y - 0.5 * gravity * flightT * flightT) / flightT;
+    }
+
+    // تنظیم نرم خط‌چین نسبت به راستای سبد
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
-      var dist = Math.hypot(dx, dy);
-      if (dist < 6) {
-        aimVx = 0;
-        aimVy = 0;
-        return;
-      }
 
-      // تشخیص خودکار جهت کشیدن: اگر انگشت به سمت راست/بالا برود (نشانه مستقیم) یا به چپ/پایین (تیروکمان)
-      var pullX, pullY;
-      if (dx >= 0 && dy <= 25) {
-        pullX = dx;
-        pullY = dy;
+      // تشخیص جهت کشیدن (به سمت سبد یا به عقب/پایین)
+      var adjX, adjY;
+      if (dx >= -12 && dy <= 25) {
+        adjX = dx;
+        adjY = dy;
       } else {
-        pullX = -dx;
-        pullY = -dy;
+        adjX = -dx;
+        adjY = -dy;
       }
 
-      // نگاشت ۱ به ۱ و بدون قفل شدن: هر چقدر انگشت را بیشتر یا بالاتر/پایین‌تر ببری، خط‌چین آزادانه به همان نقطه می‌رود
-      aimVx = Math.max(40, Math.min(1150, pullX * 3.15));
-      aimVy = Math.max(-1350, Math.min(-120, pullY * 4.35));
+      // ضریب‌های ملایم و کنترل‌شده (بدون تیزی ناگهانی از پایین)
+      var nextVx = baseAimVx + adjX * 1.45;
+      var nextVy = baseAimVy + adjY * 1.25;
+
+      aimVx = Math.max(110, Math.min(820, nextVx));
+      aimVy = Math.max(-880, Math.min(-340, nextVy));
     }
 
     function getPos(e) {
@@ -821,8 +833,11 @@
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
-      aimVx = 0;
-      aimVy = 0;
+
+      // به محض لمس صفحه، خط‌چین دقیقاً از راستای سبد نمایان می‌شود
+      computeBaseHoopAim();
+      aimVx = baseAimVx;
+      aimVy = baseAimVy;
     }
 
     function handleMove(e) {
@@ -879,7 +894,6 @@
       return hoop.x + offsets[index];
     }
 
-    // فیزیک بازتاب برداری واقعی هنگام برخورد توپ به لبه‌های چپ و راست حلقه
     function collideBallWithRimPoint(b, rx, ry) {
       if (b.rimCooldown > 0) return false;
       var dx = b.x - rx;
@@ -891,19 +905,15 @@
         var nx = dx / dist;
         var ny = dy / dist;
 
-        // بیرون کشیدن توپ از داخل نقطه لبه حلقه تا گیر نکند
         b.x = rx + nx * (hitRadius + 0.5);
         b.y = ry + ny * (hitRadius + 0.5);
 
-        // سرعت نسبی در راستای عمود بر سطح برخورد
         var vn = b.vx * nx + b.vy * ny;
         if (vn < 0) {
-          // ضریب ارتجاع طبیعی حلقه فلزی (نسبت به شدت برخورد، توپ کمانه می‌کند)
           var restitution = 0.62;
           b.vx = (b.vx - (1 + restitution) * vn * nx) * 0.92;
           b.vy = (b.vy - (1 + restitution) * vn * ny) * 0.92;
 
-          // چرخش توپ بر اساس جهت برخورد
           b.spinSpeed = (b.vx * 0.04) + (nx * 4.5);
           b.touchedRim = true;
           b.rimCooldown = 0.07;
@@ -987,13 +997,11 @@
         var leftRimX = hoop.x - hoop.rimRx;
         var rightRimX = hoop.x + hoop.rimRx;
 
-        // برخورد فیزیکی واقعی با لبه‌های چپ و راست حلقه (بدون کشیدن توپ به داخل گل)
         if (!b.scored) {
           collideBallWithRimPoint(b, leftRimX, rimY);
           collideBallWithRimPoint(b, rightRimX, rimY);
         }
 
-        // برخورد فیزیکی توپ با ۴ شاخه زنجیر مشکی
         if (b.y > rimY - 2 && b.y < rimY + hoop.chainLength + 10) {
           for (var s = 0; s < 4; s++) {
             var anchorX = getChainAnchorX(s);
@@ -1016,7 +1024,6 @@
           }
         }
 
-        // تشخیص گل شدن واقعی: فقط وقتی مرکز توپ واقعاً از بین لبه چپ و راست حلقه به پایین عبور کند
         if (
           !b.scored &&
           b.vy > 0 &&
@@ -1083,7 +1090,7 @@
     }
 
     // ==========================================
-    // ۵. رندر صحنه و حلقه قرمز مطابق تصویر
+    // ۵. رندر صحنه و حلقه قرمز
     // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
@@ -1276,14 +1283,12 @@
       ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
     }
 
-    // رسم حلقه قرمز-نارنجی با ۴ قلاب عمودی و سایه روی تخته دقیقاً مطابق تصویر
     function drawChainsAndRim() {
       var rimY = hoop.y + 10;
       var barLeft = hoop.x - hoop.rimRx;
       var barW = hoop.rimRx * 2;
       var barH = 5.5;
 
-      // ۱. سایه آبی-طوسی ظریف حلقه و قلاب‌ها روی تخته (سمت راست و پایین)
       ctx.fillStyle = "rgba(125, 165, 195, 0.55)";
       ctx.fillRect(barLeft + 6, rimY + 2, barW, barH);
       for (var sh = 0; sh < 4; sh++) {
@@ -1291,7 +1296,6 @@
         ctx.fillRect(shX - 2, rimY + 2 + barH, 4, 4.5);
       }
 
-      // ۲. رسم ۴ شاخه زنجیر مشکی آویزان از زیر قلاب‌ها
       var linksCount = 6;
       var linkStep = hoop.chainLength / linksCount;
 
@@ -1330,17 +1334,14 @@
         }
       }
 
-      // ۳. میله افقی قرمز-نارنجی حلقه + ۴ قلاب عمودی قرمز مطابق تصویر ارسالی
       ctx.fillStyle = "#e63926";
       ctx.beginPath();
       ctx.roundRect(barLeft, rimY - 2.5, barW, barH, 1.5);
       ctx.fill();
 
-      // خط درخشش زرد-نارنجی روی لبه بالایی میله حلقه
       ctx.fillStyle = "#ffbe0b";
       ctx.fillRect(barLeft + 2, rimY - 1.5, barW - 4, 1.6);
 
-      // ۴ قلاب عمودی قرمز برای اتصال زنجیرها
       ctx.fillStyle = "#d62828";
       for (var h = 0; h < 4; h++) {
         var hookX = getChainAnchorX(h);
@@ -1477,13 +1478,13 @@
       ctx.restore();
     }
 
-    // رسم خط‌چین نشانه آزاد و روان در تمام جهات
+    // خط‌چین نرم در راستای سبد
     function drawAimArc() {
       if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 160) return;
       var hp = handPos();
       var gravity = 980;
-      var dots = 16;
-      var totalPreviewTime = 0.88;
+      var dots = 15;
+      var totalPreviewTime = 0.82;
       for (var i = 1; i <= dots; i++) {
         var t = totalPreviewTime * (i / dots);
         var px = hp.x + aimVx * t;
