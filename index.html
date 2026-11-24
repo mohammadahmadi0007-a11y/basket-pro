@@ -522,7 +522,6 @@
       initAudio();
       if (!audioCtx) return;
       try {
-        // صدای عبور توپ از تور زنجیری
         var len = Math.floor(audioCtx.sampleRate * 0.28);
         var buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
         var d = buf.getChannelData(0);
@@ -540,7 +539,6 @@
         src.connect(flt); flt.connect(ng); ng.connect(audioCtx.destination);
         src.start();
 
-        // صدای تشویق تماشاچی‌ها
         var clen = Math.floor(audioCtx.sampleRate * 0.65);
         var cbuf = audioCtx.createBuffer(1, clen, audioCtx.sampleRate);
         var cd = cbuf.getChannelData(0);
@@ -579,7 +577,7 @@
     }
 
     // ==========================================
-    // ۳. موتور گرافیک و فیزیک ۲.۵ بعدی مطابق ویدئو
+    // ۳. موتور گرافیک و فیزیک مطابق فریم‌های ویدئو
     // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
@@ -599,17 +597,15 @@
     window.addEventListener("resize", resize);
     resize();
 
-    // وضعیت‌های بازی: READY (شروع با اولین لمس) | PLAYING | GAMEOVER
     var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
     var lastTime = 0;
 
-    // باد زیر اسکوربورد: جهت (-1 چپ، 1 راست) و شدت (0 تا 3)
+    // باد فقط روی توپ پرتاب‌شده اثر می‌گذارد (خط‌چین نشانه کاملاً ثابت و مستقل است)
     var windDir = -1;
     var windLevel = 0;
 
-    // مختصات کلیدی صحنه مطابق فریم‌های ویدئو
     function courtFloorY() { return H * 0.765; }
     function playerX() { return Math.max(46, W * 0.115); }
     function handPos() {
@@ -617,35 +613,31 @@
       return { x: playerX() + 14, y: courtFloorY() - 56 - jumpOff };
     }
 
-    // حلقه و تخته روبه‌روی بازیکن
     var hoop = {
-      baseX: 0,
-      baseY: 0,
       x: 0,
       y: 0,
+      targetX: 0,
+      targetY: 0,
       boardW: 94,
       boardH: 64,
       rimRx: 21,
       rimRy: 5,
-      moveTime: 0,
       netAnim: 0
     };
 
-    // آرایه توپ‌های فعال (امکان شوت‌های پشت‌سرهم مثل ویدئو)
     var activeBalls = [];
     var hasBallInHand = true;
     var reloadTimer = 0;
     var playerJump = 0;
 
-    // نشانه گیری
+    // نشانه گیری (کاملاً مستقل از باد)
     var isDragging = false;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
     var aimVx = 0;
     var aimVy = 0;
-    var aimFlightT = 0.85;
+    var aimFlightT = 0.86;
 
-    // متن‌های شناور (+3 SEC, +6 SEC, CLEAN SHOT) و فلاش تماشاچی‌ها
     var popups = [];
     var flashes = [];
     var crowdRows = [];
@@ -670,16 +662,32 @@
     buildCrowd();
     window.addEventListener("resize", buildCrowd);
 
+    function pickNextHoopSpot() {
+      var minX = Math.max(150, W * 0.34);
+      var maxX = Math.min(W - 65, W * 0.72);
+      var minY = H * 0.27;
+      var maxY = H * 0.46;
+
+      var nx = minX + Math.random() * (maxX - minX);
+      var ny = minY + Math.random() * (maxY - minY);
+
+      if (Math.hypot(nx - hoop.x, ny - hoop.y) < 48) {
+        nx = hoop.x > (minX + maxX) * 0.5 ? minX + 18 : maxX - 18;
+      }
+      hoop.targetX = nx;
+      hoop.targetY = ny;
+    }
+
     function updateWindForScore() {
       if (score < 3) {
-        windLevel = 0; // در ۳ امتیاز اول باد خاموش است (دقیقاً مثل ویدئو)
+        windLevel = 0;
         return;
       }
       windDir = Math.random() < 0.5 ? -1 : 1;
       if (score < 6) {
-        windLevel = Math.floor(Math.random() * 2) + 1; // درجه ۱ یا ۲
+        windLevel = Math.floor(Math.random() * 2) + 1;
       } else {
-        windLevel = Math.floor(Math.random() * 3) + 1; // درجه ۱ تا ۳
+        windLevel = Math.floor(Math.random() * 3) + 1;
       }
     }
 
@@ -692,11 +700,10 @@
       hasBallInHand = true;
       reloadTimer = 0;
       playerJump = 0;
-      hoop.moveTime = 0;
-      hoop.baseX = W * 0.46;
-      hoop.baseY = H * 0.37;
-      hoop.x = hoop.baseX;
-      hoop.y = hoop.baseY;
+      hoop.x = W * 0.36;
+      hoop.y = H * 0.36;
+      hoop.targetX = hoop.x;
+      hoop.targetY = hoop.y;
       gameState = "READY";
       document.getElementById("hudScore").textContent = "0";
       document.getElementById("gameOverScreen").classList.add("hidden");
@@ -718,7 +725,7 @@
       popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
-    // محاسبه قوس پرتاب دقیق به سمت حلقه
+    // محاسبه بردار پرتاب صرفاً بر اساس کشیدن انگشت (بدون اثر باد روی خط‌چین)
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
@@ -729,27 +736,23 @@
         return;
       }
 
-      // پشتیبانی از هر دو حالت: کشیدن انگشت به سمت حلقه یا کشیدن به عقب (تیروکمان)
       var targetOffsetX = 0;
       var arcHeightBoost = 0;
 
       if (dx > 12 || dy < -12) {
-        // کشیدن به جلو/بالا
-        targetOffsetX = (dx - 90) * 1.45;
+        targetOffsetX = (dx - 85) * 1.5;
         arcHeightBoost = Math.max(0, -dy) * 0.65;
       } else {
-        // کشیدن به عقب/پایین
-        targetOffsetX = (-dx - 90) * 1.45;
+        targetOffsetX = (-dx - 85) * 1.5;
         arcHeightBoost = Math.max(0, dy) * 0.65;
       }
 
       var hp = handPos();
-      var aimTargetX = hoop.x + Math.max(-160, Math.min(200, targetOffsetX));
-      var aimTargetY = hoop.y + 4;
+      var aimTargetX = hoop.targetX + Math.max(-170, Math.min(220, targetOffsetX));
+      var aimTargetY = hoop.targetY + 4;
 
       aimFlightT = 0.86;
       var gravity = 980;
-      // سرعت اولیه بدون باد (باد هنگام پرواز توپ را منحرف می‌کند)
       aimVx = (aimTargetX - hp.x) / aimFlightT;
       aimVy = (aimTargetY - hp.y - 0.5 * gravity * aimFlightT * aimFlightT) / aimFlightT - arcHeightBoost * 0.35;
       if (aimVy > -380) aimVy = -380;
@@ -772,7 +775,6 @@
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
-      // مقدار اولیه قوس به سمت حلقه به محض لمس صفحه
       var hp = handPos();
       aimFlightT = 0.86;
       aimVx = (hoop.x - hp.x) / aimFlightT;
@@ -792,6 +794,9 @@
       if (Math.hypot(aimVx, aimVy) < 120) return;
 
       var hp = handPos();
+      // چرخش اولیه توپ هنگام پرتاب (بک‌اسپین + تأثیر جهت باد)
+      var initialSpin = -5.5 + (windDir * windLevel * 2.4);
+
       activeBalls.push({
         x: hp.x,
         y: hp.y,
@@ -800,6 +805,7 @@
         prevY: hp.y,
         r: 15,
         rot: 0,
+        spinSpeed: initialSpin,
         age: 0,
         scored: false,
         touchedRim: false,
@@ -807,7 +813,7 @@
       });
 
       hasBallInHand = false;
-      reloadTimer = 0.28; // شارژ سریع توپ بعدی در دست بازیکن
+      reloadTimer = 0.28;
       playerJump = 1.0;
       playThrowSound();
     }
@@ -821,10 +827,9 @@
     window.addEventListener("touchend", handleEnd);
 
     // ==========================================
-    // ۴. به‌روزرسانی منطق بازی
+    // ۴. به‌روزرسانی منطق بازی (باد فقط روی توپ اثر می‌گذارد)
     // ==========================================
     function update(dt) {
-      // فلاش دوربین تماشاچی‌ها
       if (Math.random() < 0.08) {
         flashes.push({
           x: Math.random() * W,
@@ -849,9 +854,9 @@
         if (reloadTimer <= 0) hasBallInHand = true;
       }
 
-      // حرکت آرام و پیوسته تخته و حلقه (مطابق ویدئو)
-      hoop.baseX = W * 0.46;
-      hoop.baseY = H * 0.37;
+      hoop.x += (hoop.targetX - hoop.x) * Math.min(1, dt * 10);
+      hoop.y += (hoop.targetY - hoop.y) * Math.min(1, dt * 10);
+
       if (gameState === "PLAYING") {
         timeLeft -= dt;
         if (timeLeft <= 0) {
@@ -859,38 +864,26 @@
           triggerGameOver();
           return;
         }
-
-        if (score >= 1) {
-          var speed = Math.min(1.0 + score * 0.12, 2.3);
-          hoop.moveTime += dt * speed;
-          var rangeX = Math.min(W * 0.19, 25 + score * 8);
-          var rangeY = score >= 4 ? Math.min(H * 0.07, (score - 3) * 6) : 6;
-          hoop.x = hoop.baseX + Math.sin(hoop.moveTime * 1.15) * rangeX;
-          hoop.y = hoop.baseY + Math.cos(hoop.moveTime * 1.6) * rangeY;
-        } else {
-          hoop.x = hoop.baseX;
-          hoop.y = hoop.baseY;
-        }
-      } else {
-        hoop.x = hoop.baseX;
-        hoop.y = hoop.baseY;
       }
 
-      // فیزیک توپ‌های در حال پرواز
       var gravity = 980;
-      var windForce = windDir * windLevel * 115; // اثر باد روی محور افقی
+      var windForce = windDir * windLevel * 125;
 
       for (var i = activeBalls.length - 1; i >= 0; i--) {
         var b = activeBalls[i];
         b.age += dt;
         b.prevY = b.y;
+
+        // باد فقط روی توپِ پرتاب‌شده نیرو وارد می‌کند و چرخش آن را در جهت باد تقویت می‌کند
         b.vx += windForce * dt;
         b.vy += gravity * dt;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
-        b.rot += (b.vx * 0.015) * dt;
 
-        // برخورد با لبه‌های چپ و راست حلقه فقط وقتی توپ در حال پایین آمدن است
+        // چرخش محسوس توپ در جهت باد
+        b.spinSpeed += (windDir * windLevel * 3.6) * dt;
+        b.rot += b.spinSpeed * dt;
+
         var rimY = hoop.y + 10;
         var leftRimX = hoop.x - hoop.rimRx;
         var rightRimX = hoop.x + hoop.rimRx;
@@ -903,16 +896,17 @@
             b.touchedRim = true;
             b.vx = Math.abs(b.vx) * 0.45 + 35;
             b.vy = -Math.abs(b.vy) * 0.45;
+            b.spinSpeed = 6;
             playRimSound();
           } else if (distR < 9) {
             b.touchedRim = true;
             b.vx = -Math.abs(b.vx) * 0.45 - 35;
             b.vy = -Math.abs(b.vy) * 0.45;
+            b.spinSpeed = -6;
             playRimSound();
           }
         }
 
-        // تشخیص گل شدن (عبور مرکز توپ از دهانه حلقه به سمت پایین)
         if (
           !b.scored &&
           b.vy > 0 &&
@@ -940,19 +934,21 @@
             spawnPopup(["+" + addSec + " SEC"], hoop.x + 58, hoop.y + 12);
           }
 
+          pickNextHoopSpot();
           updateWindForScore();
         }
 
-        // برخورد با کف زمین و قل خوردن
         var floor = courtFloorY() - 8;
         if (b.y > floor) {
           b.y = floor;
           if (Math.abs(b.vy) > 90) {
             b.vy = -b.vy * 0.52;
             b.vx *= 0.78;
+            b.spinSpeed = b.vx * 0.06;
           } else {
             b.vy = 0;
             b.vx *= 0.92;
+            b.spinSpeed = b.vx * 0.06;
           }
         }
 
@@ -963,10 +959,9 @@
     }
 
     // ==========================================
-    // ۵. رندر دقیق صحنه مطابق فریم‌های ویدئو
+    // ۵. رندر صحنه و توپ بسکتبال واقعی
     // ==========================================
     function drawArenaBackground() {
-      // دیوار قرمز تیره سالن
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
       grad.addColorStop(0, "#47070e");
       grad.addColorStop(0.45, "#8f0e1c");
@@ -974,7 +969,6 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, courtFloorY());
 
-      // سازه‌های فلزی و خرپای سقف (دقیقاً مثل بالای ویدئو)
       ctx.fillStyle = "#520911";
       ctx.fillRect(0, 0, W, H * 0.14);
       ctx.strokeStyle = "#3b050b";
@@ -989,7 +983,6 @@
       }
       ctx.stroke();
 
-      // تماشاچی‌های سالن
       var now = performance.now() * 0.005;
       crowdRows.forEach(function(c) {
         var cheer = hoop.netAnim > 0 ? Math.sin(now * 3 + c.phase) * 4 : Math.sin(now + c.phase) * 1;
@@ -1002,7 +995,6 @@
         ctx.fill();
       });
 
-      // فلاش دوربین‌های سفید ستاره‌ای در بین تماشاچی‌ها
       flashes.forEach(function(f) {
         ctx.save();
         ctx.globalAlpha = f.life;
@@ -1016,7 +1008,6 @@
         ctx.arc(f.x, f.y, rad, 0, Math.PI * 2);
         ctx.fill();
 
-        // خط نور افقی فلاش
         ctx.strokeStyle = "rgba(255,255,255,0.85)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -1026,7 +1017,6 @@
         ctx.restore();
       });
 
-      // تابلوهای تبلیغاتی آبی و سفید کنار زمین (مشابه O2 SPORT در ویدئو)
       var adH = 34;
       var adY = courtFloorY() - adH;
       ctx.fillStyle = "#1956a8";
@@ -1034,12 +1024,10 @@
 
       var panelW = 148;
       for (var px = 0; px < W + panelW; px += panelW) {
-        // قاب فلزی دور تابلو
         ctx.strokeStyle = "#8aa8d6";
         ctx.lineWidth = 2;
         ctx.strokeRect(px + 2, adY + 2, panelW - 4, adH - 4);
 
-        // بخش سفید سمت راست تابلو با نوشته SPORT
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(px + 52, adY + 4, panelW - 56, adH - 8);
 
@@ -1052,7 +1040,6 @@
         ctx.fillText("SPORT", px + 64, adY + 23);
       }
 
-      // کف‌پوش پارکت چوبی زمین
       var floorTop = courtFloorY();
       var fGrad = ctx.createLinearGradient(0, floorTop, 0, H);
       fGrad.addColorStop(0, "#d46a22");
@@ -1061,7 +1048,6 @@
       ctx.fillStyle = fGrad;
       ctx.fillRect(0, floorTop, W, H - floorTop);
 
-      // خطوط سفید و تیره کف زمین
       ctx.strokeStyle = "rgba(255, 220, 180, 0.35)";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -1069,7 +1055,6 @@
       ctx.lineTo(W, floorTop + 14);
       ctx.stroke();
 
-      // سایه تماشاچی‌های ردیف جلو در پایین‌ترین لبه صفحه
       ctx.fillStyle = "#36070c";
       for (var sx = 20; sx < W; sx += 95) {
         ctx.beginPath();
@@ -1082,7 +1067,6 @@
     }
 
     function drawWallScoreboardAndWind() {
-      // اسکوربورد قرمز زاویه‌دار روی دیوار سمت چپ (دقیقاً مثل ویدئو)
       var sbW = Math.min(138, W * 0.36);
       var sbTop = H * 0.19;
       var sbH = 122;
@@ -1097,7 +1081,6 @@
       ctx.closePath();
       ctx.fill();
 
-      // کادر دیجیتال تایمر
       var ledX = 14;
       var ledY = sbTop + 34;
       var ledW = sbW - 34;
@@ -1111,18 +1094,15 @@
       ctx.fill();
       ctx.stroke();
 
-      // عدد تایمر
       var secVal = String(Math.ceil(timeLeft));
       ctx.fillStyle = timeLeft <= 5 ? "#ffea00" : "#ffffff";
       ctx.font = "900 30px monospace";
       ctx.textAlign = "center";
       ctx.fillText(secVal, ledX + ledW / 2, ledY + 32);
 
-      // ۳ فلش زردرنگ باد زیر کادر تایمر
       var arrowY = ledY + ledH + 17;
       var centerX = ledX + ledW / 2;
       for (var i = 0; i < 3; i++) {
-        // اگر باد به چپ باشد از راست به چپ روشن می‌شوند، اگر به راست باشد از چپ به راست
         var isLit = false;
         if (windLevel > 0) {
           if (windDir === 1) isLit = i < windLevel;
@@ -1150,12 +1130,13 @@
       var bx = hoop.x - hoop.boardW / 2;
       var by = hoop.y - hoop.boardH / 2;
 
-      // سایه ملایم پشت تخته
-      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
       ctx.fillRect(bx + 4, by + 5, hoop.boardW, hoop.boardH);
 
-      // تخته سفید با کادر مشکی ضخیم
-      ctx.fillStyle = "#f8f9fa";
+      var boardGrad = ctx.createLinearGradient(bx, by, bx, by + hoop.boardH);
+      boardGrad.addColorStop(0, "#d4cfd9");
+      boardGrad.addColorStop(1, "#beb8c4");
+      ctx.fillStyle = boardGrad;
       ctx.strokeStyle = "#111111";
       ctx.lineWidth = 3.5;
       ctx.beginPath();
@@ -1163,14 +1144,12 @@
       ctx.fill();
       ctx.stroke();
 
-      // مربع کوچک مشکی وسط تخته
       var sqW = 34;
       var sqH = 26;
-      ctx.strokeStyle = "#111111";
+      ctx.strokeStyle = "#18181b";
       ctx.lineWidth = 2.5;
       ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
 
-      // تور مشکی زیر حلقه (مطابق ویدئو)
       var rimY = hoop.y + 10;
       var topL = hoop.x - hoop.rimRx + 2;
       var topR = hoop.x + hoop.rimRx - 2;
@@ -1199,7 +1178,6 @@
         ctx.stroke();
       }
 
-      // حلقه نارنجی
       ctx.strokeStyle = "#ff4500";
       ctx.lineWidth = 4.5;
       ctx.beginPath();
@@ -1214,13 +1192,11 @@
       var crouch = isDragging && hasBallInHand ? 4 : 0;
       var y = floor - jumpOff;
 
-      // سایه روی پارکت
       ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
       ctx.beginPath();
       ctx.ellipse(px, floor + 2, 18, 5, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // پاها و کفش‌های سفید
       ctx.fillStyle = "#e09f67";
       ctx.fillRect(px - 8, y - 24 + crouch, 6, 18 - crouch);
       ctx.fillRect(px + 2, y - 24 + crouch, 6, 18 - crouch);
@@ -1231,26 +1207,22 @@
       ctx.roundRect(px + 1, y - 7, 11, 7, 3);
       ctx.fill();
 
-      // شورت قرمز
       ctx.fillStyle = "#e63946";
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 37 + crouch, 20, 15, 3);
       ctx.fill();
 
-      // پیراهن زرد بسکتبال
       ctx.fillStyle = "#ffbe0b";
       ctx.beginPath();
       ctx.roundRect(px - 10, y - 60 + crouch, 20, 25, 5);
       ctx.fill();
 
-      // سر بازیکن
       var headY = y - 70 + crouch;
       ctx.fillStyle = "#e09f67";
       ctx.beginPath();
       ctx.arc(px, headY, 9.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // موهای فر پرپشت مشکی (مشابه کاراکتر ویدئو)
       ctx.fillStyle = "#161618";
       var curls = [
         [-9, -3, 6], [-7, -9, 7], [0, -11, 7.5], [7, -9, 6.5],
@@ -1262,7 +1234,6 @@
         ctx.fill();
       }
 
-      // هدبند قرمز
       ctx.strokeStyle = "#e63946";
       ctx.lineWidth = 3.5;
       ctx.beginPath();
@@ -1270,7 +1241,6 @@
       ctx.lineTo(px + 9, headY - 2);
       ctx.stroke();
 
-      // دست‌های بازیکن
       ctx.strokeStyle = "#e09f67";
       ctx.lineWidth = 5;
       ctx.lineCap = "round";
@@ -1283,39 +1253,77 @@
       }
       ctx.stroke();
 
-      // توپ در دست بازیکن
       if (hasBallInHand) {
         var hp = handPos();
-        drawSingleBall(hp.x, hp.y + crouch, 13.5, 0);
+        drawSingleBall(hp.x, hp.y + crouch, 13.5, 0.35);
       }
     }
 
+    // رسم توپ بسکتبال واقعی با قوس‌های استاندارد و بافت چرم
     function drawSingleBall(x, y, r, rot) {
       ctx.save();
       ctx.translate(x, y);
-      ctx.rotate(rot);
 
-      var g = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 1, 0, 0, r);
-      g.addColorStop(0, "#ff9e1b");
-      g.addColorStop(0.65, "#f26419");
-      g.addColorStop(1, "#9e2a10");
+      // بدنه اصلی کروی توپ بسکتبال
+      var g = ctx.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
+      g.addColorStop(0, "#ff9f1c");
+      g.addColorStop(0.55, "#e85d04");
+      g.addColorStop(1, "#7f1d08");
       ctx.fillStyle = g;
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.strokeStyle = "#2b0d04";
-      ctx.lineWidth = 1.4;
+      // برش دایره‌ای تا خطوط منحنی بیرون از توپ نزنند
       ctx.beginPath();
-      ctx.moveTo(-r, 0);
-      ctx.lineTo(r, 0);
+      ctx.arc(0, 0, r - 0.5, 0, Math.PI * 2);
+      ctx.clip();
+
+      // چرخش شیارهای توپ بر اساس زاویه چرخش
+      ctx.rotate(rot);
+
+      ctx.strokeStyle = "#260b03";
+      ctx.lineWidth = Math.max(1.3, r * 0.11);
+      ctx.lineCap = "round";
+
+      // ۱. خط عمودی میانی
+      ctx.beginPath();
       ctx.moveTo(0, -r);
       ctx.lineTo(0, r);
       ctx.stroke();
 
+      // ۲. خط افقی استوایی (با کمی انحنای سه‌بعدی)
+      ctx.beginPath();
+      ctx.moveTo(-r, 0);
+      ctx.quadraticCurveTo(0, r * 0.18, r, 0);
+      ctx.stroke();
+
+      // ۳. قوس جانبی سمت چپ توپ بسکتبال
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.62, -r * 0.85);
+      ctx.quadraticCurveTo(-r * 0.18, 0, -r * 0.62, r * 0.85);
+      ctx.stroke();
+
+      // ۴. قوس جانبی سمت راست توپ بسکتبال
+      ctx.beginPath();
+      ctx.moveTo(r * 0.62, -r * 0.85);
+      ctx.quadraticCurveTo(r * 0.18, 0, r * 0.62, r * 0.85);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // حاشیه دور توپ
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.strokeStyle = "rgba(38, 11, 3, 0.7)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.restore();
     }
 
+    // خط‌چین نشانه: کاملاً ثابت و بدون تغییر از باد (باد فقط توپ را منحرف می‌کند)
     function drawAimArc() {
       if (!isDragging || !hasBallInHand || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
@@ -1325,10 +1333,16 @@
         var t = (aimFlightT * 0.92) * (i / dots);
         var px = hp.x + aimVx * t;
         var py = hp.y + aimVy * t + 0.5 * gravity * t * t;
-        ctx.fillStyle = "rgba(255, 255, 255, " + (0.95 - (i / (dots + 3)) * 0.5) + ")";
+        var alpha = 0.96 - (i / (dots + 4)) * 0.45;
+
         ctx.beginPath();
-        ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255, 255, 255, " + alpha + ")";
         ctx.fill();
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(35, 10, 15, " + (alpha * 0.65) + ")";
+        ctx.stroke();
       }
     }
 
@@ -1362,7 +1376,6 @@
       drawWallScoreboardAndWind();
       drawBackboardAndHoop();
 
-      // توپ‌هایی که گل شده‌اند پشت لبه جلویی حلقه/تور رسم می‌شوند
       activeBalls.forEach(function(b) {
         if (b.fallingThroughNet) {
           var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
@@ -1370,10 +1383,8 @@
         }
       });
 
-      drawAimArc();
       drawPlayerCharacter();
 
-      // توپ‌های در حال پرواز روی صحنه
       activeBalls.forEach(function(b) {
         if (!b.fallingThroughNet) {
           var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
@@ -1381,7 +1392,9 @@
         }
       });
 
+      drawAimArc();
       drawPopups();
+
       requestAnimationFrame(renderLoop);
     }
 
