@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>BASKET PRO | بسکتبال رکوردی</title>
+  <script src="https://tapi.bale.ai/miniapp.js?3"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -12,7 +13,6 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
       font-family: Tahoma, sans-serif;
     }
     html, body {
@@ -20,8 +20,6 @@
       height: 100%;
       overflow: hidden;
       background: #3d060c;
-      touch-action: none;
-      overscroll-behavior: none;
     }
     #gameCanvas {
       position: fixed;
@@ -423,7 +421,7 @@
       </div>
       <div class="rank-list" id="modalRankList"></div>
       <div id="guestWarnModal" class="guest-note hidden">
-        ⚠️ برای ثبت نام و عکس پروفایل خود در جدول، از طریق ربات یا دکمه کانال وارد شوید.
+        ⚠️ برای ثبت رکورد، از دکمه کانال بله وارد شوید.
       </div>
     </div>
     <button class="btn btn-primary" type="button" onclick="closeRankModal()">ادامه بازی</button>
@@ -451,7 +449,7 @@
       </div>
       <div class="rank-list" id="endRankList"></div>
       <div id="guestWarningEnd" class="guest-note hidden">
-        ⚠️ در حال بازی به عنوان مهمان هستید.
+        ⚠️ امتیاز مهمان در جدول عمومی ثبت نمی‌شود.
       </div>
     </div>
 
@@ -487,65 +485,30 @@
     }
 
     // ==========================================
-    // ۱. تنظیمات اختصاصی ربات و استاندارد بله + دیتابیس اختصاصی بسکتبال
+    // ۱. تنظیمات اختصاصی ربات و استاندارد بله
     // ==========================================
-    var DB_URL = "https://kido-db.mohammadahmadi0007.workers.dev/basket_lb.json";
     var BOT_USERNAME = "basket_pro_game_bot";
     var CHANNEL_USERNAME = "gamee_balee";
     var CHANNEL_URL = "https://ble.ir/" + CHANNEL_USERNAME;
+    var LEADERBOARD_API_URL = "";
 
-    var savedUid = safeGet("game_global_uid");
-    if (!savedUid) {
-      savedUid = "u_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      safeSet("game_global_uid", savedUid);
+    var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
+    if (webapp) {
+      try { webapp.ready(); webapp.expand(); } catch (e) {}
     }
 
-    var isAuthenticated = false;
-    var currentUser = {
-      id: savedUid,
-      name: safeGet("game_global_name") || "بازیکن مهمان",
-      photo: safeGet("game_global_photo") || ""
-    };
-    if (String(currentUser.id).indexOf("b_") === 0) {
-      isAuthenticated = true;
-    }
-
-    var baleInitialized = false;
-    function detectBaleUser() {
-      try {
-        var raw = (location.hash || "") + "&" + (location.search || "");
-        var m = raw.match(/(?:tgWebAppData|baleWebAppData)=([^&]+)/);
-        var u = null;
-        if (m && m[1]) {
-          u = JSON.parse(new URLSearchParams(decodeURIComponent(m[1])).get("user"));
+    var rawUser = webapp && webapp.initDataUnsafe && webapp.initDataUnsafe.user ? webapp.initDataUnsafe.user : null;
+    var isAuthenticated = Boolean(rawUser && rawUser.id);
+    var currentUser = isAuthenticated
+      ? {
+          id: String(rawUser.id),
+          name: [rawUser.first_name, rawUser.last_name].filter(Boolean).join(" ") || rawUser.username || "بازیکن بله",
+          photo: rawUser.photo_url || ""
         }
-        var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
-        if (webapp) {
-          if (!baleInitialized) {
-            baleInitialized = true;
-            try { webapp.ready(); webapp.expand(); } catch (e) {}
-          }
-          if (webapp.initDataUnsafe && webapp.initDataUnsafe.user) {
-            u = webapp.initDataUnsafe.user;
-          }
-        }
-        if (u && u.id) {
-          isAuthenticated = true;
-          currentUser.id = "b_" + String(u.id);
-          var fullName = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
-          if (fullName) currentUser.name = fullName;
-          if (u.photo_url) currentUser.photo = u.photo_url;
-          safeSet("game_global_uid", currentUser.id);
-          safeSet("game_global_name", currentUser.name);
-          if (currentUser.photo) safeSet("game_global_photo", currentUser.photo);
-        }
-      } catch (e) {}
-    }
-    detectBaleUser();
+      : { id: "guest", name: "بازیکن مهمان", photo: "" };
 
     function openChannel(e) {
       if (e) e.preventDefault();
-      var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
       if (webapp) {
         try {
           if (typeof webapp.openBaleLink === "function") {
@@ -563,10 +526,9 @@
 
     function forwardChallenge() {
       var best = Math.max(score, getLocalBest());
-      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=play";
+      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
       var msgText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇🔥\n" + gameLink + "\n\n🎮 کانال بازی‌ها: @" + CHANNEL_USERNAME;
       var baleShareUrl = "https://ble.ir/share/url?url=" + encodeURIComponent(gameLink) + "&text=" + encodeURIComponent(msgText);
-      var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
 
       if (webapp) {
         try {
@@ -583,7 +545,7 @@
       if (navigator.share) {
         navigator.share({ text: msgText }).catch(function() {});
       } else {
-        window.open(baleShareUrl, "_blank");
+        window.location.href = baleShareUrl;
       }
     }
 
@@ -803,97 +765,77 @@
     }
 
     // ==========================================
-    // ۳. مدیریت رنکینگ آنلاین اختصاصی بسکتبال (Cloudflare KV)
+    // ۳. مدیریت رنکینگ (بدون ثبت بازیکن مهمان)
     // ==========================================
+    var STORAGE_KEY = "basket_pro_leaderboard_v2";
     var LOCAL_BEST_KEY = "basket_pro_my_best_v2";
-    var cachedLeaderboard = [];
 
     function getLocalBest() { return Number(safeGet(LOCAL_BEST_KEY) || 0); }
     function setLocalBest(val) { if (val > getLocalBest()) safeSet(LOCAL_BEST_KEY, String(val)); }
 
-    async function syncLeaderboard(newScore) {
-      detectBaleUser();
-      if (newScore > 0) setLocalBest(newScore);
-      var finalScore = Math.max(newScore || 0, getLocalBest());
-
+    async function loadLeaderboard() {
+      if (LEADERBOARD_API_URL) {
+        try {
+          var res = await fetch(LEADERBOARD_API_URL);
+          if (res.ok) {
+            var data = await res.json();
+            if (Array.isArray(data)) return data;
+          }
+        } catch (e) {}
+      }
       try {
-        var res = await fetch(DB_URL + "?t=" + Date.now());
-        var list = await res.json();
-        if (!Array.isArray(list)) list = [];
-
-        var map = new Map();
-        for (var k = 0; k < list.length; k++) {
-          var item = list[k];
-          if (!item || !item.id) continue;
-          var keyId = String(item.id);
-          if (!map.has(keyId) || item.score > map.get(keyId).score) {
-            map.set(keyId, item);
-          }
-        }
-        list = Array.from(map.values());
-
-        var idx = list.findIndex(function(u) { return String(u.id) === String(currentUser.id); });
-        var changed = false;
-
-        if (idx >= 0) {
-          if (finalScore > list[idx].score) {
-            list[idx].score = finalScore;
-            changed = true;
-          }
-          if (currentUser.name !== "بازیکن مهمان" && list[idx].name !== currentUser.name) {
-            list[idx].name = currentUser.name;
-            changed = true;
-          }
-          if (currentUser.photo && list[idx].photo !== currentUser.photo) {
-            list[idx].photo = currentUser.photo;
-            changed = true;
-          }
-          if (list[idx].score > getLocalBest()) {
-            setLocalBest(list[idx].score);
-          }
-        } else if (finalScore > 0) {
-          list.push({
-            id: String(currentUser.id),
-            name: currentUser.name,
-            photo: currentUser.photo,
-            score: finalScore
-          });
-          changed = true;
-        }
-
-        list.sort(function(a, b) { return b.score - a.score; });
-        list = list.slice(0, 25);
-        cachedLeaderboard = list;
-
-        if (changed) {
-          await fetch(DB_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(list)
-          });
-        }
-      } catch (e) {}
-
-      return cachedLeaderboard;
+        var raw = JSON.parse(safeGet(STORAGE_KEY) || "[]");
+        return Array.isArray(raw) ? raw.filter(function(item) { return item && item.id && item.id !== "guest"; }) : [];
+      } catch (e) { return []; }
     }
 
-    async function renderLeaderboard(listElId, badgeElId, guestWarnId, scoreToSync) {
+    async function submitScore(newScore) {
+      setLocalBest(newScore);
+      if (!isAuthenticated || newScore <= 0) return;
+      if (LEADERBOARD_API_URL) {
+        try {
+          await fetch(LEADERBOARD_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore })
+          });
+        } catch (e) {}
+      }
+      var list = await loadLeaderboard();
+      var idx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
+      if (idx >= 0) {
+        if (newScore > list[idx].score) {
+          list[idx].score = newScore;
+          list[idx].name = currentUser.name;
+          list[idx].photo = currentUser.photo;
+        }
+      } else {
+        list.push({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore });
+      }
+      list.sort(function(a, b) { return b.score - a.score; });
+      safeSet(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
+    }
+
+    async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
       var listEl = document.getElementById(listElId);
       var badgeEl = document.getElementById(badgeElId);
       var guestWarn = document.getElementById(guestWarnId);
       if (!listEl || !badgeEl) return;
-
-      listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">در حال دریافت جدول...</div>';
 
       if (guestWarn) {
         if (!isAuthenticated) guestWarn.classList.remove("hidden");
         else guestWarn.classList.add("hidden");
       }
 
-      var list = await syncLeaderboard(scoreToSync || 0);
+      var list = await loadLeaderboard();
+      list.sort(function(a, b) { return b.score - a.score; });
 
-      var myIdx = list.findIndex(function(u) { return String(u.id) === String(currentUser.id); });
-      badgeEl.textContent = myIdx >= 0 ? "رتبه شما: #" + (myIdx + 1) : "رتبه شما: ثبت نشده";
+      if (isAuthenticated) {
+        var myIdx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
+        badgeEl.textContent = myIdx >= 0 ? "رتبه شما: #" + (myIdx + 1) : "رتبه شما: ثبت نشده";
+      } else {
+        badgeEl.textContent = "حالت مهمان";
+      }
 
       if (list.length === 0) {
         listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">هنوز رکوردی ثبت نشده! اولین نفر باش 🏀</div>';
@@ -902,10 +844,10 @@
 
       var medals = ["🥇", "🥈", "🥉"];
       listEl.innerHTML = list.slice(0, 10).map(function(item, i) {
-        var isMe = String(item.id) === String(currentUser.id);
+        var isMe = isAuthenticated && String(item.id) === currentUser.id;
         var rankIcon = medals[i] || ("#" + (i + 1));
         var initial = (item.name || "ب").trim().charAt(0);
-        var avatarHtml = item.photo ? '<img src="' + item.photo + '" onerror="this.parentNode.innerText=\'' + initial + '\'" alt="" />' : '<span>' + initial + '</span>';
+        var avatarHtml = item.photo ? '<img src="' + item.photo + '" alt="" />' : '<span>' + initial + '</span>';
         return '<div class="rank-item ' + (isMe ? "me" : "") + '">' +
           '<div class="player-info">' +
           '<span style="min-width:24px;font-weight:bold;">' + rankIcon + '</span>' +
@@ -919,8 +861,8 @@
 
     function openRankModal() {
       isDragging = false;
+      renderLeaderboard("modalRankList", "modalRankBadge", "guestWarnModal");
       document.getElementById("rankModal").classList.remove("hidden");
-      renderLeaderboard("modalRankList", "modalRankBadge", "guestWarnModal", 0);
     }
     function closeRankModal() {
       document.getElementById("rankModal").classList.add("hidden");
@@ -1149,6 +1091,7 @@
     window.addEventListener("resize", resize);
     resize();
 
+    var st = "READY";
     var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
@@ -1255,7 +1198,6 @@
       hasBallInHand = true;
       reloadTimer = 0;
       playerJump = 0;
-      isDragging = false;
       hoop.x = W * 0.36;
       hoop.y = H * 0.36;
       hoop.targetX = hoop.x;
@@ -1275,13 +1217,12 @@
       gameState = "GAMEOVER";
       isDragging = false;
       playBuzzer();
-      setLocalBest(score);
+      await submitScore(score);
       document.getElementById("finalScore").textContent = String(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
       updateCoinAndFlagHud();
+      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
       document.getElementById("gameOverScreen").classList.remove("hidden");
-      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd", score);
-      document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
     }
 
     function spawnPopup(lines, x, y) {
@@ -1306,27 +1247,20 @@
     }
 
     function getPos(e) {
-      if (e.touches && e.touches.length > 0) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-      if (e.changedTouches && e.changedTouches.length > 0) {
-        return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
-      }
-      return { x: e.clientX, y: e.clientY };
+      var t = (e.touches && e.touches.length) ? e.touches[0] : e;
+      return { x: t.clientX, y: t.clientY };
     }
 
     function handleStart(e) {
-      if (e.target && e.target.closest && e.target.closest("button, a, .country-badge, .coin-pill, .overlay")) return;
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
-      if (e.cancelable) e.preventDefault();
       initAudio();
       if (gameState === "READY") {
         gameState = "PLAYING";
         document.getElementById("hintPill").classList.add("hidden");
       }
-      if (!hasBallInHand || isDragging) return;
+      if (!hasBallInHand) return;
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
@@ -1335,7 +1269,6 @@
 
     function handleMove(e) {
       if (!isDragging) return;
-      if (e.cancelable) e.preventDefault();
       dragCurr = getPos(e);
       computeAim();
     }
@@ -1377,18 +1310,13 @@
       playerJump = 1.0;
     }
 
-    // فقط touch روی موبایل و فقط mouse روی دسکتاپ تا هیچ تداخلی با مینی‌اپ بله ایجاد نشود
-    var isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
-    if (isTouchDevice) {
-      document.addEventListener("touchstart", handleStart, { passive: false });
-      document.addEventListener("touchmove", handleMove, { passive: false });
-      document.addEventListener("touchend", handleEnd, { passive: true });
-      document.addEventListener("touchcancel", handleEnd, { passive: true });
-    } else {
-      document.addEventListener("mousedown", handleStart);
-      document.addEventListener("mousemove", handleMove);
-      document.addEventListener("mouseup", handleEnd);
-    }
+    canvas.addEventListener("pointerdown", handleStart);
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleEnd);
+    window.addEventListener("pointercancel", handleEnd);
+    canvas.addEventListener("touchstart", handleStart, { passive: true });
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleEnd);
 
     function getChainAnchorX(index) {
       var offsets = [-14, -5, 5, 14];
@@ -1745,6 +1673,7 @@
       }
     }
 
+    // رسم پرچم کشور خریداری‌شده روی دیوار سمت راست سالن (در کادر مشخص‌شده)
     function drawWallCountryFlag() {
       var kit = getEquippedKit();
       if (!kit || kit.id === "default") return;
@@ -1755,11 +1684,14 @@
       var fy = H * 0.195;
 
       ctx.save();
+
+      // سایه قاب پرچم روی دیوار سالن
       ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
       ctx.beginPath();
       ctx.roundRect(fx + 3, fy + 4, fw, fh, 6);
       ctx.fill();
 
+      // برش داخل قاب پرچم
       ctx.beginPath();
       ctx.roundRect(fx, fy, fw, fh, 6);
       ctx.clip();
@@ -1791,6 +1723,7 @@
         ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
         ctx.fillStyle = "#da0000";
         ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
+        // نشان وسط پرچم ایران
         ctx.strokeStyle = "#da0000";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1853,6 +1786,7 @@
         ctx.fill();
       }
 
+      // جلوه شیشه‌ای ملایم روی پرچم
       var sheen = ctx.createLinearGradient(fx, fy, fx, fy + fh);
       sheen.addColorStop(0, "rgba(255, 255, 255, 0.18)");
       sheen.addColorStop(0.5, "rgba(255, 255, 255, 0)");
@@ -1862,6 +1796,7 @@
 
       ctx.restore();
 
+      // کادر دور پرچم روی دیوار
       ctx.save();
       ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
       ctx.lineWidth = 2;
@@ -2233,11 +2168,9 @@
     }
 
     updateCoinAndFlagHud();
-    syncLeaderboard(0);
     resetGame();
     lastTime = performance.now();
     requestAnimationFrame(renderLoop);
   </script>
-  <script src="https://tapi.bale.ai/miniapp.js" async onload="detectBaleUser();syncLeaderboard(0);"></script>
 </body>
 </html>
