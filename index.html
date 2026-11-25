@@ -1315,23 +1315,16 @@
       return { x: e.clientX, y: e.clientY };
     }
 
-    function isInteractiveTarget(el) {
-      if (!el || !el.closest) return false;
-      return Boolean(el.closest("button, a, .country-badge, .coin-pill, .overlay"));
-    }
-
     function handleStart(e) {
-      if (isInteractiveTarget(e.target)) return;
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
-      if (e.cancelable) e.preventDefault();
       initAudio();
       if (gameState === "READY") {
         gameState = "PLAYING";
         document.getElementById("hintPill").classList.add("hidden");
       }
-      if (!hasBallInHand || isDragging) return;
+      if (!hasBallInHand) return;
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
@@ -1382,21 +1375,14 @@
       playerJump = 1.0;
     }
 
-    // ثبت روی document با passive: false تا در هر وب‌ویویی (بله/اندروید/موس) صددرصد لمس را بگیرد
-    if (window.PointerEvent) {
-      document.addEventListener("pointerdown", handleStart, { passive: false });
-      document.addEventListener("pointermove", handleMove, { passive: false });
-      document.addEventListener("pointerup", handleEnd);
-      document.addEventListener("pointercancel", handleEnd);
-    } else {
-      document.addEventListener("touchstart", handleStart, { passive: false });
-      document.addEventListener("touchmove", handleMove, { passive: false });
-      document.addEventListener("touchend", handleEnd);
-      document.addEventListener("touchcancel", handleEnd);
-      document.addEventListener("mousedown", handleStart);
-      document.addEventListener("mousemove", handleMove);
-      document.addEventListener("mouseup", handleEnd);
-    }
+    canvas.addEventListener("touchstart", handleStart, { passive: false });
+    canvas.addEventListener("touchmove", handleMove, { passive: false });
+    canvas.addEventListener("touchend", handleEnd, { passive: true });
+    window.addEventListener("touchend", handleEnd, { passive: true });
+
+    canvas.addEventListener("mousedown", handleStart);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
 
     function getChainAnchorX(index) {
       var offsets = [-14, -5, 5, 14];
