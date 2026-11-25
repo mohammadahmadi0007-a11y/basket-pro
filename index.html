@@ -12,17 +12,14 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
       font-family: Tahoma, sans-serif;
     }
     html, body {
-      position: fixed;
-      inset: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
       background: #3d060c;
-      touch-action: none;
-      overscroll-behavior: none;
     }
     #gameCanvas {
       position: fixed;
@@ -32,7 +29,7 @@
       height: 100%;
       display: block;
       z-index: 1;
-      touch-action: none;
+      touch-action: manipulation;
     }
     .top-hud {
       position: fixed;
@@ -525,7 +522,6 @@
           if (!baleInitialized) {
             baleInitialized = true;
             try { webapp.ready(); webapp.expand(); } catch (e) {}
-            try { if (typeof webapp.disableVerticalSwipes === "function") webapp.disableVerticalSwipes(); } catch (e) {}
           }
           if (webapp.initDataUnsafe && webapp.initDataUnsafe.user) {
             u = webapp.initDataUnsafe.user;
@@ -1318,6 +1314,7 @@
     }
 
     function handleStart(e) {
+      if (e.target && e.target.closest && e.target.closest("button, a, .country-badge, .coin-pill, .overlay")) return;
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
@@ -1376,27 +1373,13 @@
       playerJump = 1.0;
     }
 
-    // رویدادهای استاندارد Pointer (که هم لمس موبایل و هم موس را بدون تداخل در مینی‌اپ بله می‌گیرد)
-    canvas.addEventListener("pointerdown", function(e) {
-      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
-      handleStart(e);
-    });
-    canvas.addEventListener("pointermove", handleMove);
-    canvas.addEventListener("pointerup", function(e) {
-      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
-      handleEnd();
-    });
-    canvas.addEventListener("pointercancel", handleEnd);
-
-    // پشتیبان برای مرورگرهایی که PointerEvent ندارند
-    if (!window.PointerEvent) {
-      canvas.addEventListener("touchstart", handleStart, { passive: true });
-      window.addEventListener("touchmove", handleMove, { passive: true });
-      window.addEventListener("touchend", handleEnd);
-      canvas.addEventListener("mousedown", handleStart);
-      window.addEventListener("mousemove", handleMove);
-      window.addEventListener("mouseup", handleEnd);
-    }
+    // دقیقاً مشابه الگوی پایدار SWITCH در مینی‌اپ بله (بدون setPointerCapture و بدون pointercancel شکننده)
+    document.addEventListener("pointerdown", handleStart);
+    document.addEventListener("pointermove", handleMove);
+    document.addEventListener("pointerup", handleEnd);
+    document.addEventListener("touchstart", handleStart, { passive: true });
+    document.addEventListener("touchmove", handleMove, { passive: true });
+    document.addEventListener("touchend", handleEnd, { passive: true });
 
     function getChainAnchorX(index) {
       var offsets = [-14, -5, 5, 14];
