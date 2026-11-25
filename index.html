@@ -489,38 +489,66 @@
     }
 
     // ==========================================
-    // ۱. تنظیمات اختصاصی ربات و استاندارد بله
+    // ۱. تنظیمات اختصاصی ربات، اکانت بله و دیتابیس کلودفلر
     // ==========================================
     var BOT_USERNAME = "basket_pro_game_bot";
     var CHANNEL_USERNAME = "gamee_balee";
     var CHANNEL_URL = "https://ble.ir/" + CHANNEL_USERNAME;
-    var LEADERBOARD_API_URL = "";
+    var LEADERBOARD_API_URL = "https://kido-db.mohammadahmadi0007.workers.dev/basket_lb.json";
 
     var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
     if (webapp) {
       try { webapp.ready(); webapp.expand(); } catch (e) {}
     }
 
-    var rawUser = webapp && webapp.initDataUnsafe && webapp.initDataUnsafe.user ? webapp.initDataUnsafe.user : null;
-    var isAuthenticated = Boolean(rawUser && rawUser.id);
-    var currentUser = isAuthenticated
-      ? {
-          id: String(rawUser.id),
-          name: [rawUser.first_name, rawUser.last_name].filter(Boolean).join(" ") || rawUser.username || "بازیکن بله",
-          photo: rawUser.photo_url || ""
-        }
-      : { id: "guest", name: "بازیکن مهمان", photo: "" };
+    function getCurrentPlayer() {
+      var wa = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
+      var u = wa && wa.initDataUnsafe && wa.initDataUnsafe.user ? wa.initDataUnsafe.user : null;
+
+      if (!u) {
+        try {
+          var raw = (location.hash || "") + "&" + (location.search || "");
+          var m = raw.match(/(?:tgWebAppData|baleWebAppData)=([^&]+)/);
+          if (m && m[1]) {
+            u = JSON.parse(new URLSearchParams(decodeURIComponent(m[1])).get("user"));
+          }
+        } catch (e) {}
+      }
+
+      if (u && u.id) {
+        var fullName = [u.first_name, u.last_name].filter(Boolean).join(" ").trim() || u.username || "بازیکن بله";
+        return {
+          isAuth: true,
+          id: String(u.id),
+          name: fullName,
+          photo: u.photo_url || ""
+        };
+      }
+
+      var guestId = safeGet("basket_guest_uid");
+      if (!guestId) {
+        guestId = "g_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        safeSet("basket_guest_uid", guestId);
+      }
+      return {
+        isAuth: false,
+        id: guestId,
+        name: "بازیکن مهمان",
+        photo: ""
+      };
+    }
 
     function openChannel(e) {
       if (e) e.preventDefault();
-      if (webapp) {
+      var wa = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
+      if (wa) {
         try {
-          if (typeof webapp.openBaleLink === "function") {
-            webapp.openBaleLink(CHANNEL_URL);
+          if (typeof wa.openBaleLink === "function") {
+            wa.openBaleLink(CHANNEL_URL);
             return;
           }
-          if (typeof webapp.openLink === "function") {
-            webapp.openLink(CHANNEL_URL);
+          if (typeof wa.openLink === "function") {
+            wa.openLink(CHANNEL_URL);
             return;
           }
         } catch (err) {}
@@ -533,15 +561,16 @@
       var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=play";
       var msgText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇🔥\n" + gameLink + "\n\n🎮 کانال بازی‌ها: @" + CHANNEL_USERNAME;
       var baleShareUrl = "https://ble.ir/share/url?url=" + encodeURIComponent(gameLink) + "&text=" + encodeURIComponent(msgText);
+      var wa = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
 
-      if (webapp) {
+      if (wa) {
         try {
-          if (typeof webapp.openBaleLink === "function") {
-            webapp.openBaleLink(baleShareUrl);
+          if (typeof wa.openBaleLink === "function") {
+            wa.openBaleLink(baleShareUrl);
             return;
           }
-          if (typeof webapp.openLink === "function") {
-            webapp.openLink(baleShareUrl);
+          if (typeof wa.openLink === "function") {
+            wa.openLink(baleShareUrl);
             return;
           }
         } catch (err) {}
@@ -769,55 +798,95 @@
     }
 
     // ==========================================
-    // ۳. مدیریت رنکینگ (بدون ثبت بازیکن مهمان)
+    // ۳. مدیریت رنکینگ آنلاین اختصاصی برای هر اکانت (مشابه Kido Karate)
     // ==========================================
-    var STORAGE_KEY = "basket_pro_leaderboard_v2";
-    var LOCAL_BEST_KEY = "basket_pro_my_best_v2";
+    var STORAGE_KEY = "basket_pro_leaderboard_v3";
 
-    function getLocalBest() { return Number(safeGet(LOCAL_BEST_KEY) || 0); }
-    function setLocalBest(val) { if (val > getLocalBest()) safeSet(LOCAL_BEST_KEY, String(val)); }
+    function getBestKeyForPlayer(playerId) {
+      return "basket_pro_best_" + String(playerId);
+    }
+    function getLocalBest() {
+      var p = getCurrentPlayer();
+      return Number(safeGet(getBestKeyForPlayer(p.id)) || 0);
+    }
+    function setLocalBest(val) {
+      var p = getCurrentPlayer();
+      if (val > getLocalBest()) {
+        safeSet(getBestKeyForPlayer(p.id), String(val));
+      }
+    }
 
     async function loadLeaderboard() {
       if (LEADERBOARD_API_URL) {
         try {
-          var res = await fetch(LEADERBOARD_API_URL);
+          var res = await fetch(LEADERBOARD_API_URL + "?t=" + Date.now());
           if (res.ok) {
             var data = await res.json();
-            if (Array.isArray(data)) return data;
+            if (Array.isArray(data)) {
+              safeSet(STORAGE_KEY, JSON.stringify(data));
+              return data;
+            }
           }
         } catch (e) {}
       }
       try {
         var raw = JSON.parse(safeGet(STORAGE_KEY) || "[]");
-        return Array.isArray(raw) ? raw.filter(function(item) { return item && item.id && item.id !== "guest"; }) : [];
+        return Array.isArray(raw) ? raw : [];
       } catch (e) { return []; }
     }
 
     async function submitScore(newScore) {
+      var player = getCurrentPlayer();
       setLocalBest(newScore);
-      if (!isAuthenticated || newScore <= 0) return;
+      var bestForPlayer = Math.max(newScore, getLocalBest());
+      if (bestForPlayer <= 0) return;
+
+      var list = await loadLeaderboard();
+
+      // حذف تکراری‌ها بر اساس id دقیق کاربر
+      var map = new Map();
+      for (var k = 0; k < list.length; k++) {
+        var row = list[k];
+        if (!row || !row.id) continue;
+        var rowId = String(row.id);
+        if (!map.has(rowId) || Number(row.score) > Number(map.get(rowId).score)) {
+          map.set(rowId, row);
+        }
+      }
+      list = Array.from(map.values());
+
+      var idx = list.findIndex(function(u) { return String(u.id) === player.id; });
+      if (idx >= 0) {
+        if (bestForPlayer > Number(list[idx].score)) {
+          list[idx].score = bestForPlayer;
+        }
+        list[idx].name = player.name;
+        list[idx].photo = player.photo;
+        if (Number(list[idx].score) > getLocalBest()) {
+          setLocalBest(Number(list[idx].score));
+        }
+      } else {
+        list.push({
+          id: player.id,
+          name: player.name,
+          photo: player.photo,
+          score: bestForPlayer
+        });
+      }
+
+      list.sort(function(a, b) { return Number(b.score) - Number(a.score); });
+      list = list.slice(0, 30);
+      safeSet(STORAGE_KEY, JSON.stringify(list));
+
       if (LEADERBOARD_API_URL) {
         try {
           await fetch(LEADERBOARD_API_URL, {
-            method: "POST",
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore })
+            body: JSON.stringify(list)
           });
         } catch (e) {}
       }
-      var list = await loadLeaderboard();
-      var idx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
-      if (idx >= 0) {
-        if (newScore > list[idx].score) {
-          list[idx].score = newScore;
-          list[idx].name = currentUser.name;
-          list[idx].photo = currentUser.photo;
-        }
-      } else {
-        list.push({ id: currentUser.id, name: currentUser.name, photo: currentUser.photo, score: newScore });
-      }
-      list.sort(function(a, b) { return b.score - a.score; });
-      safeSet(STORAGE_KEY, JSON.stringify(list.slice(0, 30)));
     }
 
     async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
@@ -826,19 +895,24 @@
       var guestWarn = document.getElementById(guestWarnId);
       if (!listEl || !badgeEl) return;
 
+      var player = getCurrentPlayer();
+
       if (guestWarn) {
-        if (!isAuthenticated) guestWarn.classList.remove("hidden");
+        if (!player.isAuth) guestWarn.classList.remove("hidden");
         else guestWarn.classList.add("hidden");
       }
 
-      var list = await loadLeaderboard();
-      list.sort(function(a, b) { return b.score - a.score; });
+      listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">در حال دریافت جدول...</div>';
 
-      if (isAuthenticated) {
-        var myIdx = list.findIndex(function(u) { return String(u.id) === currentUser.id; });
-        badgeEl.textContent = myIdx >= 0 ? "رتبه شما: #" + (myIdx + 1) : "رتبه شما: ثبت نشده";
+      var list = await loadLeaderboard();
+      list.sort(function(a, b) { return Number(b.score) - Number(a.score); });
+
+      var myIdx = list.findIndex(function(u) { return String(u.id) === player.id; });
+      if (myIdx >= 0) {
+        badgeEl.textContent = "رتبه شما: #" + (myIdx + 1);
+        setLocalBest(Number(list[myIdx].score));
       } else {
-        badgeEl.textContent = "حالت مهمان";
+        badgeEl.textContent = player.isAuth ? "رتبه شما: ثبت نشده" : "حالت مهمان";
       }
 
       if (list.length === 0) {
@@ -848,7 +922,7 @@
 
       var medals = ["🥇", "🥈", "🥉"];
       listEl.innerHTML = list.slice(0, 10).map(function(item, i) {
-        var isMe = isAuthenticated && String(item.id) === currentUser.id;
+        var isMe = String(item.id) === player.id;
         var rankIcon = medals[i] || ("#" + (i + 1));
         var initial = (item.name || "ب").trim().charAt(0).toUpperCase();
         var avatarHtml = item.photo
@@ -1222,12 +1296,13 @@
       gameState = "GAMEOVER";
       isDragging = false;
       playBuzzer();
-      await submitScore(score);
       document.getElementById("finalScore").textContent = String(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
       updateCoinAndFlagHud();
-      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
       document.getElementById("gameOverScreen").classList.remove("hidden");
+      await submitScore(score);
+      document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
+      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
     }
 
     function spawnPopup(lines, x, y) {
