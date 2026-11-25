@@ -130,13 +130,8 @@
     }
     .overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(22, 3, 6, 0.92);
+      inset: 0;
+      background: rgba(22, 3, 6, 0.94);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -160,7 +155,6 @@
       border-radius: 14px;
       margin-bottom: 12px;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-      letter-spacing: 0.5px;
     }
     .stats-row {
       display: flex;
@@ -255,15 +249,6 @@
       color: #ffbe0b;
       font-size: 15px;
     }
-    .guest-note {
-      font-size: 11px;
-      color: #ffb703;
-      text-align: center;
-      margin-top: 8px;
-      background: rgba(255, 183, 3, 0.14);
-      padding: 6px;
-      border-radius: 8px;
-    }
     .shop-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -311,19 +296,9 @@
       width: 100%;
       text-align: center;
     }
-    .status-equipped {
-      background: #2ecc71;
-      color: #0b2916;
-    }
-    .status-owned {
-      background: rgba(255, 255, 255, 0.18);
-      color: #fff;
-    }
-    .status-locked {
-      background: rgba(255, 190, 11, 0.22);
-      color: #ffdd67;
-      border: 1px solid rgba(255, 190, 11, 0.45);
-    }
+    .status-equipped { background: #2ecc71; color: #0b2916; }
+    .status-owned { background: rgba(255, 255, 255, 0.18); color: #fff; }
+    .status-locked { background: rgba(255, 190, 11, 0.22); color: #ffdd67; border: 1px solid rgba(255, 190, 11, 0.45); }
     .btn {
       width: 100%;
       max-width: 380px;
@@ -334,23 +309,11 @@
       font-weight: 900;
       cursor: pointer;
       margin-bottom: 8px;
-      touch-action: manipulation;
     }
-    .btn:active {
-      transform: scale(0.97);
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, #2ecc71, #27ae60);
-      color: #fff;
-    }
-    .btn-shop {
-      background: linear-gradient(135deg, #ffbe0b, #fb8500);
-      color: #1d0802;
-    }
-    .btn-forward {
-      background: linear-gradient(135deg, #3a86ff, #2563eb);
-      color: #fff;
-    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff; }
+    .btn-shop { background: linear-gradient(135deg, #ffbe0b, #fb8500); color: #1d0802; }
+    .btn-forward { background: linear-gradient(135deg, #3a86ff, #2563eb); color: #fff; }
     .channel-link-btn {
       display: inline-flex;
       align-items: center;
@@ -367,19 +330,16 @@
       text-decoration: none;
       cursor: pointer;
     }
-    .channel-link-btn:active {
-      transform: scale(0.96);
-    }
   </style>
 </head>
 <body>
   <div class="top-hud">
     <div class="right-hud-group">
-      <div class="country-badge" onclick="openShopModal()" title="تغییر لباس کشور">
+      <div class="country-badge" onclick="openShopModal()">
         <span class="flag-box" id="hudFlagBox"></span>
         <span id="hudCountryName">کلاسیک</span>
       </div>
-      <div class="coin-pill" onclick="openShopModal()" title="سکه و فروشگاه">
+      <div class="coin-pill" onclick="openShopModal()">
         <span>🪙</span>
         <span id="hudCoins">0</span>
       </div>
@@ -387,16 +347,15 @@
 
     <div class="left-hud-group">
       <div class="score-display">Score: <span id="hudScore">0</span></div>
-      <button class="hud-btn" type="button" onclick="openShopModal()" title="فروشگاه لباس">🛒</button>
-      <button class="hud-btn" type="button" onclick="openRankModal()" title="جدول برترین‌ها">🏆</button>
-      <button class="hud-btn" id="soundToggle" type="button" onclick="toggleSound()" title="صدا">🔊</button>
+      <button class="hud-btn" type="button" onclick="openShopModal()">🛒</button>
+      <button class="hud-btn" type="button" onclick="openRankModal()">🏆</button>
+      <button class="hud-btn" id="soundToggle" type="button" onclick="toggleSound()">🔊</button>
     </div>
   </div>
 
   <div class="hint-pill" id="hintPill">انگشتت رو بکش و رها کن تا شوت بزنی 🏀</div>
   <canvas id="gameCanvas"></canvas>
 
-  <!-- پنجره فروشگاه ۸ کشور -->
   <div id="shopModal" class="overlay hidden">
     <div class="banner-title" style="font-size:21px;background:#fb8500;color:#1a0500;">🛒 فروشگاه لباس تیم‌های ملی</div>
     <div class="card">
@@ -410,7 +369,6 @@
     <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 عضویت در کانال @gamee_balee</a>
   </div>
 
-  <!-- پنجره رنکینگ در حین بازی -->
   <div id="rankModal" class="overlay hidden">
     <div class="banner-title" style="font-size:22px;">🏆 برترین بازیکنان</div>
     <div class="card">
@@ -419,15 +377,11 @@
         <span id="modalRankBadge">رتبه شما: -</span>
       </div>
       <div class="rank-list" id="modalRankList"></div>
-      <div id="guestWarnModal" class="guest-note hidden">
-        ⚠️ برای ثبت نام و عکس پروفایل خود در جدول، از طریق ربات یا دکمه کانال وارد شوید.
-      </div>
     </div>
     <button class="btn btn-primary" type="button" onclick="closeRankModal()">ادامه بازی</button>
     <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 اختصاصی کانال @gamee_balee</a>
   </div>
 
-  <!-- صفحه پایان بازی -->
   <div id="gameOverScreen" class="overlay hidden">
     <div class="banner-title">TIME'S UP! ⏱️</div>
     <div class="stats-row">
@@ -447,9 +401,6 @@
         <span id="myRankBadgeEnd">رتبه شما: -</span>
       </div>
       <div class="rank-list" id="endRankList"></div>
-      <div id="guestWarningEnd" class="guest-note hidden">
-        ⚠️ در حال بازی به عنوان مهمان هستید.
-      </div>
     </div>
 
     <button class="btn btn-primary" type="button" onclick="resetGame()">🔄 بازی مجدد</button>
@@ -459,19 +410,20 @@
   </div>
 
   <script>
-    if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) {
-      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        this.beginPath();
-        this.moveTo(x + r, y);
-        this.arcTo(x + w, y, x + w, y + h, r);
-        this.arcTo(x + w, y + h, x, y + h, r);
-        this.arcTo(x, y + h, x, y, r);
-        this.arcTo(x, y, x + w, y, r);
-        this.closePath();
-        return this;
-      };
+    function drawRoundRect(ctx, x, y, w, h, r) {
+      if (w < 2 * r) r = w / 2;
+      if (h < 2 * r) r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     }
 
     var memStore = {};
@@ -483,9 +435,6 @@
       try { window.localStorage.setItem(k, v); } catch (e) {}
     }
 
-    // ==========================================
-    // ۱. تنظیمات اختصاصی ربات و استاندارد بله + دیتابیس اختصاصی بسکتبال
-    // ==========================================
     var DB_URL = "https://kido-db.mohammadahmadi0007.workers.dev/basket_lb.json";
     var BOT_USERNAME = "basket_pro_game_bot";
     var CHANNEL_USERNAME = "gamee_balee";
@@ -497,16 +446,13 @@
       safeSet("game_global_uid", savedUid);
     }
 
-    var isAuthenticated = false;
     var currentUser = {
       id: savedUid,
       name: safeGet("game_global_name") || "بازیکن مهمان",
       photo: safeGet("game_global_photo") || ""
     };
-    if (String(currentUser.id).indexOf("b_") === 0) {
-      isAuthenticated = true;
-    }
 
+    var baleInitialized = false;
     function detectBaleUser() {
       try {
         var raw = (location.hash || "") + "&" + (location.search || "");
@@ -517,13 +463,15 @@
         }
         var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
         if (webapp) {
-          try { webapp.ready(); webapp.expand(); } catch (e) {}
+          if (!baleInitialized) {
+            baleInitialized = true;
+            try { webapp.ready(); webapp.expand(); } catch (e) {}
+          }
           if (webapp.initDataUnsafe && webapp.initDataUnsafe.user) {
             u = webapp.initDataUnsafe.user;
           }
         }
         if (u && u.id) {
-          isAuthenticated = true;
           currentUser.id = "b_" + String(u.id);
           var fullName = [u.first_name, u.last_name].filter(Boolean).join(" ").trim();
           if (fullName) currentUser.name = fullName;
@@ -539,39 +487,20 @@
     function openChannel(e) {
       if (e) e.preventDefault();
       var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
-      if (webapp) {
-        try {
-          if (typeof webapp.openBaleLink === "function") {
-            webapp.openBaleLink(CHANNEL_URL);
-            return;
-          }
-          if (typeof webapp.openLink === "function") {
-            webapp.openLink(CHANNEL_URL);
-            return;
-          }
-        } catch (err) {}
+      if (webapp && typeof webapp.openLink === "function") {
+        try { webapp.openLink(CHANNEL_URL); return; } catch (err) {}
       }
       window.open(CHANNEL_URL, "_blank");
     }
 
     function forwardChallenge() {
       var best = Math.max(score, getLocalBest());
-      var gameLink = "https://ble.ir/" + BOT_USERNAME;
+      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=play";
       var msgText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇🔥\n" + gameLink + "\n\n🎮 کانال بازی‌ها: @" + CHANNEL_USERNAME;
       var baleShareUrl = "https://ble.ir/share/url?url=" + encodeURIComponent(gameLink) + "&text=" + encodeURIComponent(msgText);
       var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
-
-      if (webapp) {
-        try {
-          if (typeof webapp.openBaleLink === "function") {
-            webapp.openBaleLink(baleShareUrl);
-            return;
-          }
-          if (typeof webapp.openLink === "function") {
-            webapp.openLink(baleShareUrl);
-            return;
-          }
-        } catch (err) {}
+      if (webapp && typeof webapp.openLink === "function") {
+        try { webapp.openLink(baleShareUrl); return; } catch (err) {}
       }
       if (navigator.share) {
         navigator.share({ text: msgText }).catch(function() {});
@@ -580,100 +509,19 @@
       }
     }
 
-    // ==========================================
-    // ۲. فروشگاه ۸ کشور + پرچم‌ها + رنگ لباس بازیکن
-    // ==========================================
     var KITS = [
-      {
-        id: "brazil",
-        name: "برزیل",
-        price: 5,
-        jersey: "#ffdf00",
-        stripe: "#009c3b",
-        shorts: "#002776",
-        band: "#009c3b",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#009c3b"/><polygon points="15,2 28,10 15,18 2,10" fill="#ffdf00"/><circle cx="15" cy="10" r="4.5" fill="#002776"/></svg>'
-      },
-      {
-        id: "iran",
-        name: "ایران",
-        price: 12,
-        jersey: "#ffffff",
-        stripe: "#239f40",
-        shorts: "#da0000",
-        band: "#da0000",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#239f40"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#da0000"/><circle cx="15" cy="10" r="2" fill="#da0000"/></svg>'
-      },
-      {
-        id: "argentina",
-        name: "آرژانتین",
-        price: 20,
-        jersey: "#74acdf",
-        stripe: "#ffffff",
-        shorts: "#111827",
-        band: "#74acdf",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#74acdf"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#74acdf"/><circle cx="15" cy="10" r="2.2" fill="#f6b40e"/></svg>'
-      },
-      {
-        id: "portugal",
-        name: "پرتغال",
-        price: 30,
-        jersey: "#da291c",
-        stripe: "#006600",
-        shorts: "#006600",
-        band: "#ffcc00",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="11" height="20" x="0" fill="#006600"/><rect width="19" height="20" x="11" fill="#da291c"/><circle cx="11" cy="10" r="3.5" fill="#ffcc00"/></svg>'
-      },
-      {
-        id: "france",
-        name: "فرانسه",
-        price: 45,
-        jersey: "#002395",
-        stripe: "#ed2939",
-        shorts: "#ffffff",
-        band: "#ed2939",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#002395"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ed2939"/></svg>'
-      },
-      {
-        id: "italy",
-        name: "ایتالیا",
-        price: 60,
-        jersey: "#0066cc",
-        stripe: "#ffffff",
-        shorts: "#ffffff",
-        band: "#009246",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#009246"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ce2b37"/></svg>'
-      },
-      {
-        id: "england",
-        name: "انگلستان",
-        price: 80,
-        jersey: "#ffffff",
-        stripe: "#ce1124",
-        shorts: "#00247d",
-        band: "#ce1124",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><rect width="4" height="20" x="13" fill="#ce1124"/><rect width="30" height="4" y="8" fill="#ce1124"/></svg>'
-      },
-      {
-        id: "japan",
-        name: "ژاپن",
-        price: 100,
-        jersey: "#003893",
-        stripe: "#bc002d",
-        shorts: "#0a1931",
-        band: "#bc002d",
-        flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><circle cx="15" cy="10" r="5.5" fill="#bc002d"/></svg>'
-      }
+      { id: "brazil", name: "برزیل", price: 5, jersey: "#ffdf00", stripe: "#009c3b", shorts: "#002776", band: "#009c3b", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#009c3b"/><polygon points="15,2 28,10 15,18 2,10" fill="#ffdf00"/><circle cx="15" cy="10" r="4.5" fill="#002776"/></svg>' },
+      { id: "iran", name: "ایران", price: 12, jersey: "#ffffff", stripe: "#239f40", shorts: "#da0000", band: "#da0000", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#239f40"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#da0000"/><circle cx="15" cy="10" r="2" fill="#da0000"/></svg>' },
+      { id: "argentina", name: "آرژانتین", price: 20, jersey: "#74acdf", stripe: "#ffffff", shorts: "#111827", band: "#74acdf", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="6.7" y="0" fill="#74acdf"/><rect width="30" height="6.6" y="6.7" fill="#ffffff"/><rect width="30" height="6.7" y="13.3" fill="#74acdf"/><circle cx="15" cy="10" r="2.2" fill="#f6b40e"/></svg>' },
+      { id: "portugal", name: "پرتغال", price: 30, jersey: "#da291c", stripe: "#006600", shorts: "#006600", band: "#ffcc00", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="11" height="20" x="0" fill="#006600"/><rect width="19" height="20" x="11" fill="#da291c"/><circle cx="11" cy="10" r="3.5" fill="#ffcc00"/></svg>' },
+      { id: "france", name: "فرانسه", price: 45, jersey: "#002395", stripe: "#ed2939", shorts: "#ffffff", band: "#ed2939", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#002395"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ed2939"/></svg>' },
+      { id: "italy", name: "ایتالیا", price: 60, jersey: "#0066cc", stripe: "#ffffff", shorts: "#ffffff", band: "#009246", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="10" height="20" x="0" fill="#009246"/><rect width="10" height="20" x="10" fill="#ffffff"/><rect width="10" height="20" x="20" fill="#ce2b37"/></svg>' },
+      { id: "england", name: "انگلستان", price: 80, jersey: "#ffffff", stripe: "#ce1124", shorts: "#00247d", band: "#ce1124", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><rect width="4" height="20" x="13" fill="#ce1124"/><rect width="30" height="4" y="8" fill="#ce1124"/></svg>' },
+      { id: "japan", name: "ژاپن", price: 100, jersey: "#003893", stripe: "#bc002d", shorts: "#0a1931", band: "#bc002d", flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffffff"/><circle cx="15" cy="10" r="5.5" fill="#bc002d"/></svg>' }
     ];
 
     var DEFAULT_KIT = {
-      id: "default",
-      name: "کلاسیک",
-      price: 0,
-      jersey: "#ffbe0b",
-      stripe: "#e63946",
-      shorts: "#e63946",
-      band: "#e63946",
+      id: "default", name: "کلاسیک", price: 0, jersey: "#ffbe0b", stripe: "#e63946", shorts: "#e63946", band: "#e63946",
       flagSvg: '<svg viewBox="0 0 30 20" width="100%" height="100%"><rect width="30" height="20" fill="#ffbe0b"/><circle cx="15" cy="10" r="6" fill="#e85d04"/></svg>'
     };
 
@@ -681,21 +529,16 @@
     var UNLOCKED_KEY = "basket_pro_unlocked_kits_v1";
     var EQUIPPED_KEY = "basket_pro_equipped_kit_v1";
 
-    function getCoins() {
-      return Number(safeGet(COINS_KEY) || 0);
-    }
+    function getCoins() { return Number(safeGet(COINS_KEY) || 0); }
     function addCoins(amount) {
-      var total = getCoins() + amount;
-      safeSet(COINS_KEY, String(total));
+      safeSet(COINS_KEY, String(getCoins() + amount));
       updateCoinAndFlagHud();
     }
     function getUnlockedIds() {
       try {
         var arr = JSON.parse(safeGet(UNLOCKED_KEY) || "[]");
         return Array.isArray(arr) ? arr : [];
-      } catch (e) {
-        return [];
-      }
+      } catch (e) { return []; }
     }
     function getEquippedKit() {
       var eqId = safeGet(EQUIPPED_KEY) || "default";
@@ -708,76 +551,49 @@
     function updateCoinAndFlagHud() {
       var coins = getCoins();
       var kit = getEquippedKit();
-      var hudCoinsEl = document.getElementById("hudCoins");
-      var shopCoinEl = document.getElementById("shopCoinBalance");
-      var endCoinsEl = document.getElementById("endCoins");
-      var flagBox = document.getElementById("hudFlagBox");
-      var countryNameEl = document.getElementById("hudCountryName");
-
-      if (hudCoinsEl) hudCoinsEl.textContent = String(coins);
-      if (shopCoinEl) shopCoinEl.textContent = String(coins);
-      if (endCoinsEl) endCoinsEl.textContent = String(coins);
-      if (flagBox) flagBox.innerHTML = kit.flagSvg;
-      if (countryNameEl) countryNameEl.textContent = kit.name;
+      document.getElementById("hudCoins").textContent = String(coins);
+      document.getElementById("shopCoinBalance").textContent = String(coins);
+      document.getElementById("endCoins").textContent = String(coins);
+      document.getElementById("hudFlagBox").innerHTML = kit.flagSvg;
+      document.getElementById("hudCountryName").textContent = kit.name;
     }
 
     function renderShop() {
       var grid = document.getElementById("shopGrid");
-      if (!grid) return;
       var coins = getCoins();
       var unlocked = getUnlockedIds();
       var equipped = getEquippedKit();
-
       document.getElementById("shopCoinBalance").textContent = String(coins);
 
       grid.innerHTML = KITS.map(function(kit) {
         var isUnlocked = unlocked.indexOf(kit.id) >= 0;
         var isEquipped = equipped.id === kit.id;
-        var statusHtml = "";
-        if (isEquipped) {
-          statusHtml = '<div class="shop-status status-equipped">✅ در حال استفاده</div>';
-        } else if (isUnlocked) {
-          statusHtml = '<div class="shop-status status-owned">انتخاب لباس</div>';
-        } else {
-          statusHtml = '<div class="shop-status status-locked">🪙 ' + kit.price + ' سکه</div>';
-        }
+        var statusHtml = isEquipped
+          ? '<div class="shop-status status-equipped">✅ در حال استفاده</div>'
+          : (isUnlocked ? '<div class="shop-status status-owned">انتخاب لباس</div>' : '<div class="shop-status status-locked">🪙 ' + kit.price + ' سکه</div>');
 
         return '<div class="shop-item ' + (isEquipped ? "equipped" : "") + '" onclick="handleKitClick(\'' + kit.id + '\')">' +
-          '<div class="shop-item-top">' +
-          '<span class="flag-box">' + kit.flagSvg + '</span>' +
-          '<span>' + kit.name + '</span>' +
-          '</div>' +
-          '<div class="kit-preview" style="background:linear-gradient(to bottom, ' + kit.jersey + ' 62%, ' + kit.shorts + ' 62%);">' +
-          '<div style="position:absolute;top:24%;left:0;right:0;height:4px;background:' + kit.stripe + ';"></div>' +
-          '</div>' +
-          statusHtml +
-          '</div>';
+          '<div class="shop-item-top"><span class="flag-box">' + kit.flagSvg + '</span><span>' + kit.name + '</span></div>' +
+          '<div class="kit-preview" style="background:linear-gradient(to bottom, ' + kit.jersey + ' 62%, ' + kit.shorts + ' 62%);"><div style="position:absolute;top:24%;left:0;right:0;height:4px;background:' + kit.stripe + ';"></div></div>' +
+          statusHtml + '</div>';
       }).join("");
     }
 
     function handleKitClick(kitId) {
-      var kit = null;
-      for (var i = 0; i < KITS.length; i++) {
-        if (KITS[i].id === kitId) { kit = KITS[i]; break; }
-      }
+      var kit = KITS.find(function(k) { return k.id === kitId; });
       if (!kit) return;
-
       var unlocked = getUnlockedIds();
-      var isUnlocked = unlocked.indexOf(kit.id) >= 0;
-
-      if (isUnlocked) {
+      if (unlocked.indexOf(kit.id) >= 0) {
         safeSet(EQUIPPED_KEY, kit.id);
         updateCoinAndFlagHud();
         renderShop();
         return;
       }
-
       var coins = getCoins();
       if (coins < kit.price) {
-        alert("برای باز کردن لباس تیم " + kit.name + " به " + kit.price + " سکه نیاز داری!\n(موجودی فعلی: " + coins + " سکه — با هر گل ۱ سکه می‌گیری)");
+        alert("سکه کافی نیست! (" + coins + " از " + kit.price + " سکه)");
         return;
       }
-
       safeSet(COINS_KEY, String(coins - kit.price));
       unlocked.push(kit.id);
       safeSet(UNLOCKED_KEY, JSON.stringify(unlocked));
@@ -795,12 +611,8 @@
       document.getElementById("shopModal").classList.add("hidden");
     }
 
-    // ==========================================
-    // ۳. مدیریت رنکینگ آنلاین اختصاصی بسکتبال (Cloudflare KV)
-    // ==========================================
     var LOCAL_BEST_KEY = "basket_pro_my_best_v2";
     var cachedLeaderboard = [];
-
     function getLocalBest() { return Number(safeGet(LOCAL_BEST_KEY) || 0); }
     function setLocalBest(val) { if (val > getLocalBest()) safeSet(LOCAL_BEST_KEY, String(val)); }
 
@@ -829,28 +641,12 @@
         var changed = false;
 
         if (idx >= 0) {
-          if (finalScore > list[idx].score) {
-            list[idx].score = finalScore;
-            changed = true;
-          }
-          if (currentUser.name !== "بازیکن مهمان" && list[idx].name !== currentUser.name) {
-            list[idx].name = currentUser.name;
-            changed = true;
-          }
-          if (currentUser.photo && list[idx].photo !== currentUser.photo) {
-            list[idx].photo = currentUser.photo;
-            changed = true;
-          }
-          if (list[idx].score > getLocalBest()) {
-            setLocalBest(list[idx].score);
-          }
+          if (finalScore > list[idx].score) { list[idx].score = finalScore; changed = true; }
+          if (currentUser.name !== "بازیکن مهمان" && list[idx].name !== currentUser.name) { list[idx].name = currentUser.name; changed = true; }
+          if (currentUser.photo && list[idx].photo !== currentUser.photo) { list[idx].photo = currentUser.photo; changed = true; }
+          if (list[idx].score > getLocalBest()) setLocalBest(list[idx].score);
         } else if (finalScore > 0) {
-          list.push({
-            id: String(currentUser.id),
-            name: currentUser.name,
-            photo: currentUser.photo,
-            score: finalScore
-          });
+          list.push({ id: String(currentUser.id), name: currentUser.name, photo: currentUser.photo, score: finalScore });
           changed = true;
         }
 
@@ -870,19 +666,12 @@
       return cachedLeaderboard;
     }
 
-    async function renderLeaderboard(listElId, badgeElId, guestWarnId, scoreToSync) {
+    async function renderLeaderboard(listElId, badgeElId, scoreToSync) {
       var listEl = document.getElementById(listElId);
       var badgeEl = document.getElementById(badgeElId);
-      var guestWarn = document.getElementById(guestWarnId);
       if (!listEl || !badgeEl) return;
 
       listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">در حال دریافت جدول...</div>';
-
-      if (guestWarn) {
-        if (!isAuthenticated) guestWarn.classList.remove("hidden");
-        else guestWarn.classList.add("hidden");
-      }
-
       var list = await syncLeaderboard(scoreToSync || 0);
 
       var myIdx = list.findIndex(function(u) { return String(u.id) === String(currentUser.id); });
@@ -913,19 +702,14 @@
     function openRankModal() {
       isDragging = false;
       document.getElementById("rankModal").classList.remove("hidden");
-      renderLeaderboard("modalRankList", "modalRankBadge", "guestWarnModal", 0);
+      renderLeaderboard("modalRankList", "modalRankBadge", 0);
     }
     function closeRankModal() {
       document.getElementById("rankModal").classList.add("hidden");
     }
 
-    // ==========================================
-    // ۴. موتور صدای واقعی
-    // ==========================================
     var audioCtx = null;
     var soundEnabled = true;
-    var lastChainClinkTime = 0;
-
     function initAudio() {
       try {
         if (!audioCtx) {
@@ -935,207 +719,40 @@
         if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
       } catch (e) {}
     }
-
     function toggleSound() {
       soundEnabled = !soundEnabled;
       document.getElementById("soundToggle").textContent = soundEnabled ? "🔊" : "🔇";
     }
-
-    function playFloorBounceSound(intensity) {
-      if (!soundEnabled) return;
-      initAudio();
-      if (!audioCtx) return;
-      var vol = Math.min(1, Math.max(0.06, intensity || 0.7));
-      if (vol < 0.08) return;
-
-      try {
-        var now = audioCtx.currentTime;
-        var bodyOsc = audioCtx.createOscillator();
-        var bodyGain = audioCtx.createGain();
-        bodyOsc.type = "sine";
-        bodyOsc.frequency.setValueAtTime(148 + vol * 24, now);
-        bodyOsc.frequency.exponentialRampToValueAtTime(52, now + 0.13);
-        bodyGain.gain.setValueAtTime(0.55 * vol, now);
-        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-        bodyOsc.connect(bodyGain);
-        bodyGain.connect(audioCtx.destination);
-        bodyOsc.start(now);
-        bodyOsc.stop(now + 0.16);
-
-        var ringOsc = audioCtx.createOscillator();
-        var ringGain = audioCtx.createGain();
-        ringOsc.type = "triangle";
-        ringOsc.frequency.setValueAtTime(245, now);
-        ringOsc.frequency.exponentialRampToValueAtTime(165, now + 0.09);
-        ringGain.gain.setValueAtTime(0.22 * vol, now);
-        ringGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-        ringOsc.connect(ringGain);
-        ringGain.connect(audioCtx.destination);
-        ringOsc.start(now);
-        ringOsc.stop(now + 0.11);
-
-        var slapLen = Math.floor(audioCtx.sampleRate * 0.045);
-        var slapBuf = audioCtx.createBuffer(1, slapLen, audioCtx.sampleRate);
-        var slapData = slapBuf.getChannelData(0);
-        for (var i = 0; i < slapLen; i++) {
-          slapData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.011));
-        }
-        var slapSrc = audioCtx.createBufferSource();
-        slapSrc.buffer = slapBuf;
-
-        var slapFilter = audioCtx.createBiquadFilter();
-        slapFilter.type = "bandpass";
-        slapFilter.frequency.value = 820;
-        slapFilter.Q.value = 1.4;
-
-        var slapGain = audioCtx.createGain();
-        slapGain.gain.setValueAtTime(0.32 * vol, now);
-        slapGain.gain.exponentialRampToValueAtTime(0.005, now + 0.045);
-
-        slapSrc.connect(slapFilter);
-        slapFilter.connect(slapGain);
-        slapGain.connect(audioCtx.destination);
-        slapSrc.start(now);
-      } catch (e) {}
-    }
-
-    function playRimSound(speedRatio) {
-      if (!soundEnabled) return;
-      initAudio();
-      if (!audioCtx) return;
-      try {
-        var vol = Math.min(0.45, Math.max(0.12, (speedRatio || 0.7) * 0.4));
-        var osc = audioCtx.createOscillator();
-        var g = audioCtx.createGain();
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(215, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(75, audioCtx.currentTime + 0.11);
-        g.gain.setValueAtTime(vol, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-        osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.12);
-      } catch (e) {}
-    }
-
-    function playChainRattle(intensity) {
-      if (!soundEnabled) return;
-      initAudio();
-      if (!audioCtx) return;
-      var now = audioCtx.currentTime;
-      if (now - lastChainClinkTime < 0.08) return;
-      lastChainClinkTime = now;
-
-      try {
-        var vol = Math.min(1, Math.max(0.25, intensity || 0.8));
-        var duration = 0.34;
-        var sampleRate = audioCtx.sampleRate;
-        var totalSamples = Math.floor(sampleRate * duration);
-
-        var buffer = audioCtx.createBuffer(1, totalSamples, sampleRate);
-        var data = buffer.getChannelData(0);
-
-        var clinkCount = 22;
-        for (var c = 0; c < clinkCount; c++) {
-          var startSample = Math.floor((c / clinkCount) * totalSamples * 0.78 + Math.random() * 140);
-          var clinkLen = Math.floor(sampleRate * (0.012 + Math.random() * 0.018));
-          var clinkAmp = (1 - c / (clinkCount * 1.15)) * (0.55 + Math.random() * 0.45);
-          var f1 = 3100 + Math.random() * 2600;
-          var f2 = 5400 + Math.random() * 3200;
-
-          for (var s = 0; s < clinkLen && (startSample + s) < totalSamples; s++) {
-            var t = s / sampleRate;
-            var env = Math.exp(-t * 210);
-            var noise = (Math.random() * 2 - 1) * 0.65;
-            var ring = Math.sin(2 * Math.PI * f1 * t) * 0.45 + Math.sin(2 * Math.PI * f2 * t) * 0.35;
-            data[startSample + s] += (noise + ring) * env * clinkAmp;
-          }
-        }
-
-        var source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-
-        var hpFilter = audioCtx.createBiquadFilter();
-        hpFilter.type = "highpass";
-        hpFilter.frequency.value = 1800;
-
-        var peakFilter = audioCtx.createBiquadFilter();
-        peakFilter.type = "peaking";
-        peakFilter.frequency.value = 4200;
-        peakFilter.Q.value = 2.2;
-        peakFilter.gain.value = 7;
-
-        var masterGain = audioCtx.createGain();
-        masterGain.gain.setValueAtTime(0.55 * vol, now);
-        masterGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
-        source.connect(hpFilter);
-        hpFilter.connect(peakFilter);
-        peakFilter.connect(masterGain);
-        masterGain.connect(audioCtx.destination);
-        source.start(now);
-      } catch (e) {}
-    }
-
-    function playScoreWithChainAndCrowd(isClean) {
-      playChainRattle(1.0);
+    function playSimpleBeep(freq, endFreq, dur, vol, type) {
       if (!soundEnabled) return;
       initAudio();
       if (!audioCtx) return;
       try {
         var now = audioCtx.currentTime;
-        var clen = Math.floor(audioCtx.sampleRate * 0.65);
-        var cbuf = audioCtx.createBuffer(1, clen, audioCtx.sampleRate);
-        var cd = cbuf.getChannelData(0);
-        for (var j = 0; j < clen; j++) {
-          var env = Math.sin(Math.min(1, j / (audioCtx.sampleRate * 0.1)) * Math.PI * 0.5) * Math.exp(-j / (audioCtx.sampleRate * 0.26));
-          cd[j] = (Math.random() * 2 - 1) * env;
-        }
-        var csrc = audioCtx.createBufferSource();
-        csrc.buffer = cbuf;
-        var cflt = audioCtx.createBiquadFilter();
-        cflt.type = "lowpass";
-        cflt.frequency.value = isClean ? 1350 : 920;
-        var cg = audioCtx.createGain();
-        cg.gain.setValueAtTime(isClean ? 0.28 : 0.18, now + 0.04);
-        cg.gain.exponentialRampToValueAtTime(0.005, now + 0.64);
-        csrc.connect(cflt); cflt.connect(cg); cg.connect(audioCtx.destination);
-        csrc.start(now + 0.04);
-      } catch (e) {}
-    }
-
-    function playBuzzer() {
-      if (!soundEnabled) return;
-      initAudio();
-      if (!audioCtx) return;
-      try {
         var osc = audioCtx.createOscillator();
         var g = audioCtx.createGain();
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(95, audioCtx.currentTime + 0.8);
-        g.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
+        osc.type = type || "sine";
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + dur);
+        g.gain.setValueAtTime(vol, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + dur);
         osc.connect(g); g.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.85);
+        osc.start(now); osc.stop(now + dur + 0.01);
       } catch (e) {}
     }
 
-    // ==========================================
-    // ۵. موتور گرافیک و فیزیک واقعی
-    // ==========================================
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
-
     var W = window.innerWidth || 360;
     var H = window.innerHeight || 640;
     var dpr = 1;
 
     function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       W = window.innerWidth || 360;
       H = window.innerHeight || 640;
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     window.addEventListener("resize", resize);
@@ -1145,7 +762,6 @@
     var score = 0;
     var timeLeft = 21.0;
     var lastTime = 0;
-
     var windDir = 1;
     var windLevel = 1;
 
@@ -1156,24 +772,8 @@
       return { x: playerX() + 14, y: courtFloorY() - 56 - jumpOff };
     }
 
-    var chainStrands = [
-      { angle: 0, vel: 0 },
-      { angle: 0, vel: 0 },
-      { angle: 0, vel: 0 },
-      { angle: 0, vel: 0 }
-    ];
-
-    var hoop = {
-      x: 0,
-      y: 0,
-      targetX: 0,
-      targetY: 0,
-      boardW: 94,
-      boardH: 64,
-      rimRx: 21,
-      rimRy: 5,
-      chainLength: 29
-    };
+    var chainStrands = [{ angle: 0, vel: 0 }, { angle: 0, vel: 0 }, { angle: 0, vel: 0 }, { angle: 0, vel: 0 }];
+    var hoop = { x: 0, y: 0, targetX: 0, targetY: 0, boardW: 94, boardH: 64, rimRx: 21, rimRy: 5, chainLength: 29 };
 
     var activeBalls = [];
     var hasBallInHand = true;
@@ -1181,6 +781,7 @@
     var playerJump = 0;
 
     var isDragging = false;
+    var activePointerId = null;
     var dragStart = { x: 0, y: 0 };
     var dragCurr = { x: 0, y: 0 };
     var aimVx = 0;
@@ -1188,13 +789,12 @@
     var aimFlightT = 0.86;
 
     var popups = [];
-    var flashes = [];
     var crowdRows = [];
 
     function buildCrowd() {
       crowdRows = [];
-      var step = 20;
-      var count = Math.ceil(W / step) + 3;
+      var step = 22;
+      var count = Math.ceil(W / step) + 2;
       var colors = ["#570c14", "#660f18", "#75121d", "#4a0910"];
       for (var r = 0; r < 4; r++) {
         for (var c = 0; c < count; c++) {
@@ -1203,7 +803,7 @@
             y: H * 0.44 + r * 22,
             r: 8.5 + (r * 0.4),
             color: colors[r % colors.length],
-            phase: Math.random() * Math.PI * 2
+            phase: (r + c) * 0.6
           });
         }
       }
@@ -1216,10 +816,8 @@
       var maxX = Math.min(W - 65, W * 0.72);
       var minY = H * 0.27;
       var maxY = H * 0.46;
-
       var nx = minX + Math.random() * (maxX - minX);
       var ny = minY + Math.random() * (maxY - minY);
-
       if (Math.hypot(nx - hoop.x, ny - hoop.y) < 48) {
         nx = hoop.x > (minX + maxX) * 0.5 ? minX + 18 : maxX - 18;
       }
@@ -1228,13 +826,8 @@
     }
 
     function randomizeWindAfterShot() {
-      var prevDir = windDir;
-      var prevLevel = windLevel;
       windDir = Math.random() < 0.5 ? -1 : 1;
       windLevel = Math.floor(Math.random() * 3) + 1;
-      if (windDir === prevDir && windLevel === prevLevel) {
-        windLevel = (prevLevel % 3) + 1;
-      }
     }
 
     function resetGame() {
@@ -1247,14 +840,13 @@
       hasBallInHand = true;
       reloadTimer = 0;
       playerJump = 0;
+      isDragging = false;
+      activePointerId = null;
       hoop.x = W * 0.36;
       hoop.y = H * 0.36;
       hoop.targetX = hoop.x;
       hoop.targetY = hoop.y;
-      for (var c = 0; c < 4; c++) {
-        chainStrands[c].angle = 0;
-        chainStrands[c].vel = 0;
-      }
+      for (var c = 0; c < 4; c++) { chainStrands[c].angle = 0; chainStrands[c].vel = 0; }
       gameState = "READY";
       document.getElementById("hudScore").textContent = "0";
       document.getElementById("gameOverScreen").classList.add("hidden");
@@ -1265,43 +857,31 @@
     async function triggerGameOver() {
       gameState = "GAMEOVER";
       isDragging = false;
-      playBuzzer();
+      playSimpleBeep(115, 85, 0.55, 0.25, "sawtooth");
       setLocalBest(score);
       document.getElementById("finalScore").textContent = String(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
       updateCoinAndFlagHud();
       document.getElementById("gameOverScreen").classList.remove("hidden");
-      await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd", score);
+      await renderLeaderboard("endRankList", "myRankBadgeEnd", score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
-    }
-
-    function spawnPopup(lines, x, y) {
-      popups.push({ lines: lines, x: x, y: y, life: 1.0 });
     }
 
     function computeAim() {
       var dx = dragCurr.x - dragStart.x;
       var dy = dragCurr.y - dragStart.y;
-
       var targetOffsetX = Math.max(-240, Math.min(280, -dx * 1.65));
       var targetOffsetY = Math.max(-220, Math.min(220, -dy * 1.45));
-
       var hp = handPos();
       var aimTargetX = hoop.targetX + targetOffsetX;
       var aimTargetY = hoop.targetY + 6 + targetOffsetY;
-
       aimFlightT = 0.86;
       var gravity = 980;
       aimVx = (aimTargetX - hp.x) / aimFlightT;
       aimVy = (aimTargetY - hp.y - 0.5 * gravity * aimFlightT * aimFlightT) / aimFlightT;
     }
 
-    function getPos(e) {
-      var t = (e.touches && e.touches.length) ? e.touches[0] : e;
-      return { x: t.clientX, y: t.clientY };
-    }
-
-    function handleStart(e) {
+    canvas.addEventListener("pointerdown", function(e) {
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
@@ -1310,49 +890,35 @@
         gameState = "PLAYING";
         document.getElementById("hintPill").classList.add("hidden");
       }
-      if (!hasBallInHand) return;
+      if (!hasBallInHand || isDragging) return;
       isDragging = true;
-      dragStart = getPos(e);
-      dragCurr = { x: dragStart.x, y: dragStart.y };
+      activePointerId = e.pointerId;
+      dragStart = { x: e.clientX, y: e.clientY };
+      dragCurr = { x: e.clientX, y: e.clientY };
       computeAim();
-    }
+    });
 
-    function handleMove(e) {
-      if (!isDragging) return;
-      dragCurr = getPos(e);
+    window.addEventListener("pointermove", function(e) {
+      if (!isDragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+      dragCurr = { x: e.clientX, y: e.clientY };
       computeAim();
-    }
+    });
 
-    function handleEnd() {
+    function releaseShot(e) {
       if (!isDragging) return;
+      if (e && activePointerId !== null && e.pointerId !== undefined && e.pointerId !== activePointerId) return;
       isDragging = false;
+      activePointerId = null;
       if (!hasBallInHand || gameState !== "PLAYING") return;
       if (Math.hypot(aimVx, aimVy) < 120) return;
 
       var hp = handPos();
-      var initialSpin = -5.0 + (windDir * windLevel * 1.4);
-
       activeBalls.push({
-        x: hp.x,
-        y: hp.y,
-        vx: aimVx,
-        vy: aimVy,
-        prevY: hp.y,
-        r: 13.5,
-        rot: 0,
-        spinSpeed: initialSpin,
-        age: 0,
-        scored: false,
-        touchedRim: false,
-        fallingThroughNet: false,
-        shotWindDir: windDir,
-        shotWindLevel: windLevel,
-        windChangedForThisShot: false,
-        touchedChain: false,
-        rimCooldown: 0,
-        floorBounces: 0,
-        fading: false,
-        alpha: 1.0
+        x: hp.x, y: hp.y, vx: aimVx, vy: aimVy, prevY: hp.y,
+        r: 13.5, rot: 0, spinSpeed: -5.0 + (windDir * windLevel * 1.4),
+        age: 0, scored: false, touchedRim: false, fallingThroughNet: false,
+        shotWindDir: windDir, shotWindLevel: windLevel, windChangedForThisShot: false,
+        rimCooldown: 0, floorBounces: 0, fading: false, alpha: 1.0
       });
 
       hasBallInHand = false;
@@ -1360,13 +926,8 @@
       playerJump = 1.0;
     }
 
-    canvas.addEventListener("pointerdown", handleStart);
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleEnd);
-    window.addEventListener("pointercancel", handleEnd);
-    canvas.addEventListener("touchstart", handleStart, { passive: true });
-    window.addEventListener("touchmove", handleMove, { passive: true });
-    window.addEventListener("touchend", handleEnd);
+    window.addEventListener("pointerup", releaseShot);
+    window.addEventListener("pointercancel", releaseShot);
 
     function getChainAnchorX(index) {
       var offsets = [-14, -5, 5, 14];
@@ -1383,22 +944,16 @@
       if (dist < hitRadius && dist > 0.0001) {
         var nx = dx / dist;
         var ny = dy / dist;
-
         b.x = rx + nx * (hitRadius + 0.5);
         b.y = ry + ny * (hitRadius + 0.5);
-
         var vn = b.vx * nx + b.vy * ny;
         if (vn < 0) {
-          var restitution = 0.62;
-          b.vx = (b.vx - (1 + restitution) * vn * nx) * 0.92;
-          b.vy = (b.vy - (1 + restitution) * vn * ny) * 0.92;
-
+          b.vx = (b.vx - 1.62 * vn * nx) * 0.92;
+          b.vy = (b.vy - 1.62 * vn * ny) * 0.92;
           b.spinSpeed = (b.vx * 0.04) + (nx * 4.5);
           b.touchedRim = true;
           b.rimCooldown = 0.07;
-
-          var impactSpeed = Math.abs(vn);
-          playRimSound(impactSpeed / 650);
+          playSimpleBeep(210, 80, 0.1, 0.16, "triangle");
           return true;
         }
       }
@@ -1408,32 +963,17 @@
     function hasPendingShotInAir() {
       for (var i = 0; i < activeBalls.length; i++) {
         var b = activeBalls[i];
-        if (!b.scored && !b.fading && b.floorBounces === 0) {
-          return true;
-        }
+        if (!b.scored && !b.fading && b.floorBounces === 0) return true;
       }
       return false;
     }
 
-    // ==========================================
-    // ۶. به‌روزرسانی منطق بازی
-    // ==========================================
     function update(dt) {
-      if (Math.random() < 0.08) {
-        flashes.push({
-          x: Math.random() * W,
-          y: H * (0.43 + Math.random() * 0.22),
-          life: 1.0
-        });
+      for (var p = popups.length - 1; p >= 0; p--) {
+        popups[p].y -= 28 * dt;
+        popups[p].life -= dt * 0.9;
+        if (popups[p].life <= 0) popups.splice(p, 1);
       }
-      flashes.forEach(function(f) { f.life -= dt * 4.2; });
-      flashes = flashes.filter(function(f) { return f.life > 0; });
-
-      popups.forEach(function(p) {
-        p.y -= 28 * dt;
-        p.life -= dt * 0.9;
-      });
-      popups = popups.filter(function(p) { return p.life > 0; });
 
       if (playerJump > 0) playerJump = Math.max(0, playerJump - dt * 3.8);
 
@@ -1461,12 +1001,8 @@
         if (timeLeft <= 0) {
           timeLeft = 0;
           isDragging = false;
-          if (hasPendingShotInAir()) {
-            gameState = "BUZZER_WAIT";
-          } else {
-            triggerGameOver();
-            return;
-          }
+          if (hasPendingShotInAir()) gameState = "BUZZER_WAIT";
+          else { triggerGameOver(); return; }
         }
       }
 
@@ -1481,19 +1017,13 @@
 
         if (b.fading) {
           b.alpha -= dt * 2.1;
-          if (b.alpha <= 0) {
-            activeBalls.splice(i, 1);
-            continue;
-          }
+          if (b.alpha <= 0) { activeBalls.splice(i, 1); continue; }
         }
 
-        var windForce = b.shotWindDir * b.shotWindLevel * 32;
-        b.vx += windForce * dt;
+        b.vx += (b.shotWindDir * b.shotWindLevel * 32) * dt;
         b.vy += gravity * dt;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
-
-        b.spinSpeed += (b.shotWindDir * b.shotWindLevel * 1.6) * dt;
         b.rot += b.spinSpeed * dt;
 
         var leftRimX = hoop.x - hoop.rimRx;
@@ -1504,37 +1034,7 @@
           collideBallWithRimPoint(b, rightRimX, rimY);
         }
 
-        if (b.y > rimY - 2 && b.y < rimY + hoop.chainLength + 10) {
-          for (var s = 0; s < 4; s++) {
-            var anchorX = getChainAnchorX(s);
-            var strandTipX = anchorX + Math.sin(chainStrands[s].angle) * hoop.chainLength;
-            var strandMidX = (anchorX + strandTipX) * 0.5;
-            var dxChain = strandMidX - b.x;
-
-            if (Math.abs(dxChain) < b.r + 3.5) {
-              var pushDir = dxChain >= 0 ? 1 : -1;
-              if (Math.abs(dxChain) < 2) pushDir = s < 2 ? -1 : 1;
-
-              chainStrands[s].vel += pushDir * 14.5 * dt * 60;
-              b.vx *= (1 - 1.6 * dt);
-
-              if (!b.touchedChain) {
-                b.touchedChain = true;
-                playChainRattle(0.75);
-              }
-            }
-          }
-        }
-
-        if (
-          !b.scored &&
-          !b.fading &&
-          b.vy > 0 &&
-          b.prevY <= rimY &&
-          b.y >= rimY &&
-          b.x > leftRimX + 4 &&
-          b.x < rightRimX - 4
-        ) {
+        if (!b.scored && !b.fading && b.vy > 0 && b.prevY <= rimY && b.y >= rimY && b.x > leftRimX + 4 && b.x < rightRimX - 4) {
           b.scored = true;
           b.fallingThroughNet = true;
           b.vx *= 0.35;
@@ -1550,18 +1050,17 @@
           var isClean = !b.touchedRim;
           var addSec = isClean ? 6 : 3;
           timeLeft = Math.min(60, timeLeft + addSec);
-          playScoreWithChainAndCrowd(isClean);
+          playSimpleBeep(isClean ? 760 : 580, isClean ? 1120 : 880, 0.18, 0.2, "triangle");
 
           if (gameState === "BUZZER_WAIT") {
             gameState = "PLAYING";
             hasBallInHand = true;
           }
 
-          if (isClean) {
-            spawnPopup(["+" + addSec + " SEC", "CLEAN", "SHOT"], hoop.x + 56, hoop.y + 8);
-          } else {
-            spawnPopup(["+" + addSec + " SEC"], hoop.x + 58, hoop.y + 12);
-          }
+          popups.push({
+            lines: isClean ? ["+" + addSec + " SEC", "CLEAN", "SHOT"] : ["+" + addSec + " SEC"],
+            x: hoop.x + 56, y: hoop.y + 8, life: 1.0
+          });
 
           pickNextHoopSpot();
           if (!b.windChangedForThisShot) {
@@ -1577,25 +1076,19 @@
             b.windChangedForThisShot = true;
             randomizeWindAfterShot();
           }
-
           if (b.vy > 40) {
             b.floorBounces += 1;
-            var impactRatio = Math.min(1, b.vy / 820);
-            playFloorBounceSound(impactRatio);
-
+            playSimpleBeep(150, 55, 0.11, Math.min(0.25, b.vy / 2500), "sine");
             if (b.floorBounces === 1) {
               b.vy = -b.vy * 0.68;
               b.vx *= 0.86;
-              b.spinSpeed = b.vx * 0.07;
             } else {
               b.vy = -b.vy * 0.48;
               b.vx *= 0.85;
-              b.spinSpeed = b.vx * 0.07;
               b.fading = true;
             }
           } else {
             b.vy = 0;
-            b.vx *= 0.94;
             b.fading = true;
           }
         }
@@ -1614,9 +1107,6 @@
       }
     }
 
-    // ==========================================
-    // ۷. رندر صحنه، پرچم روی دیوار راست و لباس بازیکن
-    // ==========================================
     function drawArenaBackground() {
       var grad = ctx.createLinearGradient(0, 0, 0, courtFloorY());
       grad.addColorStop(0, "#47070e");
@@ -1627,52 +1117,14 @@
 
       ctx.fillStyle = "#520911";
       ctx.fillRect(0, 0, W, H * 0.14);
-      ctx.strokeStyle = "#3b050b";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, H * 0.14);
-      ctx.lineTo(W, H * 0.14);
-      for (var tx = 0; tx < W; tx += 70) {
-        ctx.moveTo(tx, 10);
-        ctx.lineTo(tx + 35, H * 0.14);
-        ctx.lineTo(tx + 70, 10);
-      }
-      ctx.stroke();
 
-      var now = performance.now() * 0.005;
-      var anyChainMoving = Math.abs(chainStrands[0].vel) > 0.4 || Math.abs(chainStrands[3].vel) > 0.4;
-      crowdRows.forEach(function(c) {
-        var cheer = anyChainMoving ? Math.sin(now * 3 + c.phase) * 4 : Math.sin(now + c.phase) * 1;
+      for (var i = 0; i < crowdRows.length; i++) {
+        var c = crowdRows[i];
         ctx.fillStyle = c.color;
         ctx.beginPath();
-        ctx.arc(c.x, c.y + cheer, c.r, 0, Math.PI * 2);
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
         ctx.fill();
-        ctx.beginPath();
-        ctx.roundRect(c.x - c.r - 1, c.y + c.r - 1 + cheer, (c.r + 1) * 2, 18, 6);
-        ctx.fill();
-      });
-
-      flashes.forEach(function(f) {
-        ctx.save();
-        ctx.globalAlpha = f.life;
-        var rad = 18 * f.life;
-        var rg = ctx.createRadialGradient(f.x, f.y, 1, f.x, f.y, rad);
-        rg.addColorStop(0, "#ffffff");
-        rg.addColorStop(0.4, "rgba(255,255,255,0.6)");
-        rg.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = rg;
-        ctx.beginPath();
-        ctx.arc(f.x, f.y, rad, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(255,255,255,0.85)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(f.x - rad * 1.4, f.y);
-        ctx.lineTo(f.x + rad * 1.4, f.y);
-        ctx.stroke();
-        ctx.restore();
-      });
+      }
 
       var adH = 34;
       var adY = courtFloorY() - adH;
@@ -1684,168 +1136,65 @@
         ctx.strokeStyle = "#8aa8d6";
         ctx.lineWidth = 2;
         ctx.strokeRect(px + 2, adY + 2, panelW - 4, adH - 4);
-
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(px + 52, adY + 4, panelW - 56, adH - 8);
-
-        ctx.fillStyle = "#ffffff";
         ctx.font = "900 15px Tahoma";
         ctx.fillText("O₂", px + 18, adY + 23);
-
         ctx.fillStyle = "#1956a8";
-        ctx.font = "900 14px Tahoma";
         ctx.fillText("SPORT", px + 64, adY + 23);
       }
 
       var floorTop = courtFloorY();
       var fGrad = ctx.createLinearGradient(0, floorTop, 0, H);
       fGrad.addColorStop(0, "#d46a22");
-      fGrad.addColorStop(0.35, "#b85416");
       fGrad.addColorStop(1, "#6e2b08");
       ctx.fillStyle = fGrad;
       ctx.fillRect(0, floorTop, W, H - floorTop);
-
-      ctx.strokeStyle = "rgba(255, 220, 180, 0.35)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, floorTop + 14);
-      ctx.lineTo(W, floorTop + 14);
-      ctx.stroke();
-
-      ctx.fillStyle = "#36070c";
-      for (var sx = 20; sx < W; sx += 95) {
-        ctx.beginPath();
-        ctx.arc(sx, H - 18, 24, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.roundRect(sx - 34, H - 6, 68, 30, 14);
-        ctx.fill();
-      }
     }
 
     function drawWallCountryFlag() {
       var kit = getEquippedKit();
       if (!kit || kit.id === "default") return;
-
       var fw = Math.min(112, W * 0.31);
       var fh = fw * 0.62;
       var fx = W - fw - 14;
       var fy = H * 0.195;
 
       ctx.save();
-      ctx.fillStyle = "rgba(0, 0, 0, 0.32)";
-      ctx.beginPath();
-      ctx.roundRect(fx + 3, fy + 4, fw, fh, 6);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.roundRect(fx, fy, fw, fh, 6);
+      drawRoundRect(ctx, fx, fy, fw, fh, 6);
       ctx.clip();
 
       if (kit.id === "brazil") {
-        ctx.fillStyle = "#009c3b";
-        ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#009c3b"; ctx.fillRect(fx, fy, fw, fh);
         ctx.fillStyle = "#ffdf00";
-        ctx.beginPath();
-        ctx.moveTo(fx + fw * 0.5, fy + fh * 0.1);
-        ctx.lineTo(fx + fw * 0.92, fy + fh * 0.5);
-        ctx.lineTo(fx + fw * 0.5, fy + fh * 0.9);
-        ctx.lineTo(fx + fw * 0.08, fy + fh * 0.5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.fillStyle = "#002776";
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.48, fy + fh * 0.58, fh * 0.22, -Math.PI * 0.85, -Math.PI * 0.15);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(fx + fw * 0.5, fy + fh * 0.1); ctx.lineTo(fx + fw * 0.92, fy + fh * 0.5); ctx.lineTo(fx + fw * 0.5, fy + fh * 0.9); ctx.lineTo(fx + fw * 0.08, fy + fh * 0.5); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#002776"; ctx.beginPath(); ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.22, 0, Math.PI * 2); ctx.fill();
       } else if (kit.id === "iran") {
-        ctx.fillStyle = "#239f40";
-        ctx.fillRect(fx, fy, fw, fh / 3);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
-        ctx.fillStyle = "#da0000";
-        ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
-        ctx.strokeStyle = "#da0000";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.1, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(fx + fw * 0.5, fy + fh * 0.37);
-        ctx.lineTo(fx + fw * 0.5, fy + fh * 0.63);
-        ctx.stroke();
+        ctx.fillStyle = "#239f40"; ctx.fillRect(fx, fy, fw, fh / 3);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
+        ctx.fillStyle = "#da0000"; ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
       } else if (kit.id === "argentina") {
-        ctx.fillStyle = "#74acdf";
-        ctx.fillRect(fx, fy, fw, fh / 3);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
-        ctx.fillStyle = "#74acdf";
-        ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
-        ctx.fillStyle = "#f6b40e";
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.11, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = "#74acdf"; ctx.fillRect(fx, fy, fw, fh / 3);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx, fy + fh / 3, fw, fh / 3);
+        ctx.fillStyle = "#74acdf"; ctx.fillRect(fx, fy + (fh * 2) / 3, fw, fh / 3);
       } else if (kit.id === "portugal") {
-        ctx.fillStyle = "#006600";
-        ctx.fillRect(fx, fy, fw * 0.38, fh);
-        ctx.fillStyle = "#da291c";
-        ctx.fillRect(fx + fw * 0.38, fy, fw * 0.62, fh);
-        ctx.fillStyle = "#ffcc00";
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.38, fy + fh * 0.5, fh * 0.17, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.38, fy + fh * 0.5, fh * 0.09, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = "#006600"; ctx.fillRect(fx, fy, fw * 0.38, fh);
+        ctx.fillStyle = "#da291c"; ctx.fillRect(fx + fw * 0.38, fy, fw * 0.62, fh);
       } else if (kit.id === "france") {
-        ctx.fillStyle = "#002395";
-        ctx.fillRect(fx, fy, fw / 3, fh);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
-        ctx.fillStyle = "#ed2939";
-        ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#002395"; ctx.fillRect(fx, fy, fw / 3, fh);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#ed2939"; ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
       } else if (kit.id === "italy") {
-        ctx.fillStyle = "#009246";
-        ctx.fillRect(fx, fy, fw / 3, fh);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
-        ctx.fillStyle = "#ce2b37";
-        ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#009246"; ctx.fillRect(fx, fy, fw / 3, fh);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx + fw / 3, fy, fw / 3, fh);
+        ctx.fillStyle = "#ce2b37"; ctx.fillRect(fx + (fw * 2) / 3, fy, fw / 3, fh);
       } else if (kit.id === "england") {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx, fy, fw, fh);
-        ctx.fillStyle = "#ce1124";
-        ctx.fillRect(fx + fw * 0.43, fy, fw * 0.14, fh);
-        ctx.fillRect(fx, fy + fh * 0.39, fw, fh * 0.22);
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#ce1124"; ctx.fillRect(fx + fw * 0.43, fy, fw * 0.14, fh); ctx.fillRect(fx, fy + fh * 0.39, fw, fh * 0.22);
       } else if (kit.id === "japan") {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(fx, fy, fw, fh);
-        ctx.fillStyle = "#bc002d";
-        ctx.beginPath();
-        ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.27, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.fillRect(fx, fy, fw, fh);
+        ctx.fillStyle = "#bc002d"; ctx.beginPath(); ctx.arc(fx + fw * 0.5, fy + fh * 0.5, fh * 0.27, 0, Math.PI * 2); ctx.fill();
       }
-
-      var sheen = ctx.createLinearGradient(fx, fy, fx, fy + fh);
-      sheen.addColorStop(0, "rgba(255, 255, 255, 0.18)");
-      sheen.addColorStop(0.5, "rgba(255, 255, 255, 0)");
-      sheen.addColorStop(1, "rgba(0, 0, 0, 0.15)");
-      ctx.fillStyle = sheen;
-      ctx.fillRect(fx, fy, fw, fh);
-
-      ctx.restore();
-
-      ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(fx, fy, fw, fh, 6);
-      ctx.stroke();
       ctx.restore();
     }
 
@@ -1854,84 +1203,52 @@
       var sbTop = H * 0.19;
       var sbH = 122;
 
-      ctx.save();
       ctx.fillStyle = "#c92a38";
       ctx.beginPath();
-      ctx.moveTo(0, sbTop);
-      ctx.lineTo(sbW, sbTop + 8);
-      ctx.lineTo(sbW - 6, sbTop + sbH - 6);
-      ctx.lineTo(0, sbTop + sbH);
+      ctx.moveTo(0, sbTop); ctx.lineTo(sbW, sbTop + 8); ctx.lineTo(sbW - 6, sbTop + sbH - 6); ctx.lineTo(0, sbTop + sbH);
       ctx.closePath();
       ctx.fill();
 
-      var ledX = 14;
-      var ledY = sbTop + 34;
-      var ledW = sbW - 34;
-      var ledH = 44;
-
+      var ledX = 14, ledY = sbTop + 34, ledW = sbW - 34, ledH = 44;
       ctx.fillStyle = "#7a0c16";
+      ctx.fillRect(ledX, ledY, ledW, ledH);
       ctx.strokeStyle = "#f2b8be";
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(ledX, ledY, ledW, ledH, 4);
-      ctx.fill();
-      ctx.stroke();
+      ctx.strokeRect(ledX, ledY, ledW, ledH);
 
-      var secVal = String(Math.ceil(timeLeft));
       ctx.fillStyle = timeLeft <= 5 ? "#ffea00" : "#ffffff";
       ctx.font = "900 30px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(secVal, ledX + ledW / 2, ledY + 32);
+      ctx.fillText(String(Math.ceil(timeLeft)), ledX + ledW / 2, ledY + 32);
 
       var arrowY = ledY + ledH + 17;
       var centerX = ledX + ledW / 2;
       for (var i = 0; i < 3; i++) {
-        var isLit = false;
-        if (windLevel > 0) {
-          if (windDir === 1) isLit = i < windLevel;
-          else isLit = (2 - i) < windLevel;
-        }
+        var isLit = windDir === 1 ? (i < windLevel) : ((2 - i) < windLevel);
         ctx.fillStyle = isLit ? "#ffcf24" : "rgba(90, 8, 16, 0.45)";
         var ax = centerX + (i - 1) * 20;
         ctx.beginPath();
         if (windDir === 1) {
-          ctx.moveTo(ax - 6, arrowY - 6);
-          ctx.lineTo(ax + 6, arrowY);
-          ctx.lineTo(ax - 6, arrowY + 6);
+          ctx.moveTo(ax - 6, arrowY - 6); ctx.lineTo(ax + 6, arrowY); ctx.lineTo(ax - 6, arrowY + 6);
         } else {
-          ctx.moveTo(ax + 6, arrowY - 6);
-          ctx.lineTo(ax - 6, arrowY);
-          ctx.lineTo(ax + 6, arrowY + 6);
+          ctx.moveTo(ax + 6, arrowY - 6); ctx.lineTo(ax - 6, arrowY); ctx.lineTo(ax + 6, arrowY + 6);
         }
         ctx.closePath();
         ctx.fill();
       }
-      ctx.restore();
     }
 
     function drawBackboard() {
       var bx = hoop.x - hoop.boardW / 2;
       var by = hoop.y - hoop.boardH / 2;
-
-      ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
-      ctx.fillRect(bx + 4, by + 5, hoop.boardW, hoop.boardH);
-
-      var boardGrad = ctx.createLinearGradient(bx, by, bx, by + hoop.boardH);
-      boardGrad.addColorStop(0, "#d4cfd9");
-      boardGrad.addColorStop(1, "#beb8c4");
-      ctx.fillStyle = boardGrad;
+      ctx.fillStyle = "#d4cfd9";
       ctx.strokeStyle = "#111111";
       ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.rect(bx, by, hoop.boardW, hoop.boardH);
-      ctx.fill();
-      ctx.stroke();
-
-      var sqW = 34;
-      var sqH = 26;
+      ctx.fillRect(bx, by, hoop.boardW, hoop.boardH);
+      ctx.strokeRect(bx, by, hoop.boardW, hoop.boardH);
       ctx.strokeStyle = "#18181b";
       ctx.lineWidth = 2.5;
-      ctx.strokeRect(hoop.x - sqW / 2, hoop.y - 16, sqW, sqH);
+      ctx.strokeRect(hoop.x - 17, hoop.y - 16, 34, 26);
     }
 
     function drawChainsAndRim() {
@@ -1940,64 +1257,27 @@
       var barW = hoop.rimRx * 2;
       var barH = 5.5;
 
-      ctx.fillStyle = "rgba(125, 165, 195, 0.55)";
-      ctx.fillRect(barLeft + 6, rimY + 2, barW, barH);
-      for (var sh = 0; sh < 4; sh++) {
-        var shX = getChainAnchorX(sh) + 6;
-        ctx.fillRect(shX - 2, rimY + 2 + barH, 4, 4.5);
-      }
-
       var linksCount = 6;
       var linkStep = hoop.chainLength / linksCount;
+      ctx.strokeStyle = "#0d0d10";
+      ctx.lineWidth = 2.2;
 
       for (var s = 0; s < 4; s++) {
         var anchorX = getChainAnchorX(s);
         var ang = chainStrands[s].angle;
-
         for (var l = 0; l < linksCount; l++) {
-          var ratio = (l + 0.6) / linksCount;
-          var bend = ang * (0.65 + 0.55 * ratio);
+          var bend = ang * (0.65 + 0.55 * ((l + 0.6) / linksCount));
           var dist = (l + 0.5) * linkStep;
           var lx = anchorX + Math.sin(bend) * dist;
           var ly = rimY + barH + 2 + Math.cos(bend) * dist;
-
-          ctx.save();
-          ctx.translate(lx, ly);
-          ctx.rotate(-bend);
-
-          ctx.strokeStyle = "#0d0d10";
-          ctx.lineWidth = 2.5;
           ctx.beginPath();
-          if (l % 2 === 0) {
-            ctx.ellipse(0, 0, 1.8, 3.1, 0, 0, Math.PI * 2);
-          } else {
-            ctx.ellipse(0, 0, 2.3, 2.2, 0, 0, Math.PI * 2);
-          }
+          ctx.arc(lx, ly, 2.3, 0, Math.PI * 2);
           ctx.stroke();
-
-          ctx.strokeStyle = "#3f3f46";
-          ctx.lineWidth = 0.9;
-          ctx.beginPath();
-          ctx.arc(-0.4, -0.5, 1.3, 0, Math.PI);
-          ctx.stroke();
-
-          ctx.restore();
         }
       }
 
       ctx.fillStyle = "#e63926";
-      ctx.beginPath();
-      ctx.roundRect(barLeft, rimY - 2.5, barW, barH, 1.5);
-      ctx.fill();
-
-      ctx.fillStyle = "#ffbe0b";
-      ctx.fillRect(barLeft + 2, rimY - 1.5, barW - 4, 1.6);
-
-      ctx.fillStyle = "#d62828";
-      for (var h = 0; h < 4; h++) {
-        var hookX = getChainAnchorX(h);
-        ctx.fillRect(hookX - 2.2, rimY + 2.5, 4.4, 4.5);
-      }
+      ctx.fillRect(barLeft, rimY - 2.5, barW, barH);
     }
 
     function drawPlayerCharacter() {
@@ -2008,30 +1288,19 @@
       var crouch = isDragging && hasBallInHand ? 4 : 0;
       var y = floor - jumpOff;
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
-      ctx.beginPath();
-      ctx.ellipse(px, floor + 2, 18, 5, 0, 0, Math.PI * 2);
-      ctx.fill();
-
       ctx.fillStyle = "#e09f67";
       ctx.fillRect(px - 8, y - 24 + crouch, 6, 18 - crouch);
       ctx.fillRect(px + 2, y - 24 + crouch, 6, 18 - crouch);
 
       ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.roundRect(px - 9, y - 7, 10, 7, 3);
-      ctx.roundRect(px + 1, y - 7, 11, 7, 3);
-      ctx.fill();
+      ctx.fillRect(px - 9, y - 7, 10, 7);
+      ctx.fillRect(px + 1, y - 7, 11, 7);
 
       ctx.fillStyle = kit.shorts;
-      ctx.beginPath();
-      ctx.roundRect(px - 10, y - 37 + crouch, 20, 15, 3);
-      ctx.fill();
+      ctx.fillRect(px - 10, y - 37 + crouch, 20, 15);
 
       ctx.fillStyle = kit.jersey;
-      ctx.beginPath();
-      ctx.roundRect(px - 10, y - 60 + crouch, 20, 25, 5);
-      ctx.fill();
+      ctx.fillRect(px - 10, y - 60 + crouch, 20, 25);
 
       ctx.fillStyle = kit.stripe;
       ctx.fillRect(px - 10, y - 50 + crouch, 20, 4.5);
@@ -2043,33 +1312,15 @@
       ctx.fill();
 
       ctx.fillStyle = "#161618";
-      var curls = [
-        [-9, -3, 6], [-7, -9, 7], [0, -11, 7.5], [7, -9, 6.5],
-        [-11, 2, 5.5], [-4, -6, 6.5], [3, -6, 6]
-      ];
-      for (var c = 0; c < curls.length; c++) {
-        ctx.beginPath();
-        ctx.arc(px + curls[c][0], headY + curls[c][1], curls[c][2], 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.beginPath();
+      ctx.arc(px, headY - 4, 10, Math.PI, Math.PI * 2);
+      ctx.fill();
 
       ctx.strokeStyle = kit.band;
       ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.moveTo(px - 8, headY - 4);
       ctx.lineTo(px + 9, headY - 2);
-      ctx.stroke();
-
-      ctx.strokeStyle = "#e09f67";
-      ctx.lineWidth = 5;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(px + 2, y - 54 + crouch);
-      if (hasBallInHand) {
-        ctx.lineTo(px + 13, y - 55 + crouch);
-      } else {
-        ctx.lineTo(px + 16, y - 72);
-      }
       ctx.stroke();
 
       if (hasBallInHand && gameState !== "BUZZER_WAIT" && gameState !== "GAMEOVER") {
@@ -2082,54 +1333,18 @@
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, alpha === undefined ? 1.0 : alpha));
       ctx.translate(x, y);
-
-      var g = ctx.createRadialGradient(-r * 0.35, -r * 0.35, r * 0.1, 0, 0, r);
-      g.addColorStop(0, "#ff9f1c");
-      g.addColorStop(0.55, "#e85d04");
-      g.addColorStop(1, "#7f1d08");
-      ctx.fillStyle = g;
+      ctx.fillStyle = "#e85d04";
       ctx.beginPath();
       ctx.arc(0, 0, r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(0, 0, r - 0.5, 0, Math.PI * 2);
-      ctx.clip();
-
       ctx.rotate(rot);
-
       ctx.strokeStyle = "#260b03";
-      ctx.lineWidth = Math.max(1.3, r * 0.11);
-      ctx.lineCap = "round";
-
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
-      ctx.moveTo(0, -r);
-      ctx.lineTo(0, r);
+      ctx.moveTo(0, -r); ctx.lineTo(0, r);
+      ctx.moveTo(-r, 0); ctx.lineTo(r, 0);
       ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-r, 0);
-      ctx.quadraticCurveTo(0, r * 0.18, r, 0);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.62, -r * 0.85);
-      ctx.quadraticCurveTo(-r * 0.18, 0, -r * 0.62, r * 0.85);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(r * 0.62, -r * 0.85);
-      ctx.quadraticCurveTo(r * 0.18, 0, r * 0.62, r * 0.85);
-      ctx.stroke();
-      ctx.restore();
-
-      ctx.strokeStyle = "rgba(38, 11, 3, 0.7)";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
-
       ctx.restore();
     }
 
@@ -2143,36 +1358,26 @@
         var px = hp.x + aimVx * t;
         var py = hp.y + aimVy * t + 0.5 * gravity * t * t;
         if (py > courtFloorY()) break;
-        var alpha = 0.96 - (i / (dots + 4)) * 0.45;
-
         ctx.beginPath();
-        ctx.arc(px, py, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(255, 255, 255, " + alpha + ")";
+        ctx.arc(px, py, 3.4, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
         ctx.fill();
-
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = "rgba(35, 10, 15, " + (alpha * 0.65) + ")";
-        ctx.stroke();
       }
     }
 
     function drawPopups() {
-      popups.forEach(function(p) {
+      for (var i = 0; i < popups.length; i++) {
+        var p = popups[i];
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.life);
         ctx.textAlign = "center";
-        for (var i = 0; i < p.lines.length; i++) {
-          var isCleanLine = i > 0;
-          ctx.font = isCleanLine ? "900 18px Tahoma" : "900 22px Tahoma";
-          var ly = p.y + i * 21;
-          ctx.strokeStyle = "#111111";
-          ctx.lineWidth = 4;
-          ctx.strokeText(p.lines[i], p.x, ly);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillText(p.lines[i], p.x, ly);
+        ctx.font = "900 19px Tahoma";
+        ctx.fillStyle = "#ffffff";
+        for (var j = 0; j < p.lines.length; j++) {
+          ctx.fillText(p.lines[j], p.x, p.y + j * 21);
         }
         ctx.restore();
-      });
+      }
     }
 
     function renderLoop(now) {
@@ -2186,23 +1391,14 @@
       drawWallScoreboardAndWind();
       drawWallCountryFlag();
       drawBackboard();
-
-      activeBalls.forEach(function(b) {
-        if (b.fallingThroughNet) {
-          var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
-          drawSingleBall(b.x, b.y, b.r * scale, b.rot, b.alpha);
-        }
-      });
-
       drawChainsAndRim();
       drawPlayerCharacter();
 
-      activeBalls.forEach(function(b) {
-        if (!b.fallingThroughNet) {
-          var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
-          drawSingleBall(b.x, b.y, b.r * scale, b.rot, b.alpha);
-        }
-      });
+      for (var i = 0; i < activeBalls.length; i++) {
+        var b = activeBalls[i];
+        var scale = Math.max(0.72, 1 - Math.min(b.age / 0.85, 1) * 0.28);
+        drawSingleBall(b.x, b.y, b.r * scale, b.rot, b.alpha);
+      }
 
       drawAimArc();
       drawPopups();
@@ -2216,6 +1412,6 @@
     lastTime = performance.now();
     requestAnimationFrame(renderLoop);
   </script>
-  <script src="https://tapi.bale.ai/miniapp.js?3" async onload="syncLeaderboard(0)"></script>
+  <script src="https://tapi.bale.ai/miniapp.js" async onload="syncLeaderboard(0)"></script>
 </body>
 </html>
