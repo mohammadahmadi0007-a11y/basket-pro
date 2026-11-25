@@ -20,6 +20,8 @@
       height: 100%;
       overflow: hidden;
       background: #3d060c;
+      touch-action: none;
+      overscroll-behavior: none;
     }
     #gameCanvas {
       position: fixed;
@@ -29,7 +31,7 @@
       height: 100%;
       display: block;
       z-index: 1;
-      touch-action: manipulation;
+      touch-action: none;
     }
     .top-hud {
       position: fixed;
@@ -1318,12 +1320,13 @@
       if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
+      if (e.cancelable) e.preventDefault();
       initAudio();
       if (gameState === "READY") {
         gameState = "PLAYING";
         document.getElementById("hintPill").classList.add("hidden");
       }
-      if (!hasBallInHand) return;
+      if (!hasBallInHand || isDragging) return;
       isDragging = true;
       dragStart = getPos(e);
       dragCurr = { x: dragStart.x, y: dragStart.y };
@@ -1332,6 +1335,7 @@
 
     function handleMove(e) {
       if (!isDragging) return;
+      if (e.cancelable) e.preventDefault();
       dragCurr = getPos(e);
       computeAim();
     }
@@ -1373,13 +1377,18 @@
       playerJump = 1.0;
     }
 
-    // دقیقاً مشابه الگوی پایدار SWITCH در مینی‌اپ بله (بدون setPointerCapture و بدون pointercancel شکننده)
-    document.addEventListener("pointerdown", handleStart);
-    document.addEventListener("pointermove", handleMove);
-    document.addEventListener("pointerup", handleEnd);
-    document.addEventListener("touchstart", handleStart, { passive: true });
-    document.addEventListener("touchmove", handleMove, { passive: true });
-    document.addEventListener("touchend", handleEnd, { passive: true });
+    // فقط touch روی موبایل و فقط mouse روی دسکتاپ تا هیچ تداخلی با مینی‌اپ بله ایجاد نشود
+    var isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0);
+    if (isTouchDevice) {
+      document.addEventListener("touchstart", handleStart, { passive: false });
+      document.addEventListener("touchmove", handleMove, { passive: false });
+      document.addEventListener("touchend", handleEnd, { passive: true });
+      document.addEventListener("touchcancel", handleEnd, { passive: true });
+    } else {
+      document.addEventListener("mousedown", handleStart);
+      document.addEventListener("mousemove", handleMove);
+      document.addEventListener("mouseup", handleEnd);
+    }
 
     function getChainAnchorX(index) {
       var offsets = [-14, -5, 5, 14];
