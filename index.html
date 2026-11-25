@@ -432,11 +432,11 @@
     <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 اختصاصی کانال @gamee_balee</a>
   </div>
 
-  <!-- صفحه پایان بازی -->
-  <div id="gameOverScreen" class="overlay hidden">
-    <div class="banner-title">TIME'S UP! ⏱️</div>
+  <!-- صفحه شروع و پایان بازی -->
+  <div id="gameOverScreen" class="overlay">
+    <div class="banner-title" id="screenBannerTitle">🏀 BASKET PRO</div>
     <div class="stats-row">
-      <div class="stat-box">
+      <div class="stat-box" id="finalScoreBox" style="display:none;">
         <div class="stat-val" id="finalScore" style="color:#2ecc71;">0</div>
         <div class="stat-lbl">امتیاز شما</div>
       </div>
@@ -457,7 +457,7 @@
       </div>
     </div>
 
-    <button class="btn btn-primary" type="button" onclick="resetGame()">🔄 بازی مجدد</button>
+    <button class="btn btn-primary" id="mainActionBtn" type="button" onclick="resetGame()">▶️ شروع بازی</button>
     <button class="btn btn-shop" type="button" onclick="openShopModal()">🛒 فروشگاه</button>
     <button class="btn btn-forward" type="button" onclick="forwardChallenge()">📨 فوروارد و کل‌کل با دوستان در بله</button>
     <a class="channel-link-btn" href="https://ble.ir/gamee_balee" onclick="openChannel(event)">🎮 اختصاصی کانال @gamee_balee</a>
@@ -713,13 +713,11 @@
       var kit = getEquippedKit();
       var hudCoinsEl = document.getElementById("hudCoins");
       var shopCoinEl = document.getElementById("shopCoinBalance");
-      var endCoinsEl = document.getElementById("endCoins");
       var flagBox = document.getElementById("hudFlagBox");
       var countryNameEl = document.getElementById("hudCountryName");
 
       if (hudCoinsEl) hudCoinsEl.textContent = String(coins);
       if (shopCoinEl) shopCoinEl.textContent = String(coins);
-      if (endCoinsEl) endCoinsEl.textContent = String(coins);
       if (flagBox) flagBox.innerHTML = kit.flagSvg;
       if (countryNameEl) countryNameEl.textContent = kit.name;
     }
@@ -799,7 +797,7 @@
     }
 
     // ==========================================
-    // ۳. مدیریت رنکینگ آنلاین اختصاصی برای هر اکانت (مشابه Kido Karate)
+    // ۳. مدیریت رنکینگ آنلاین اختصاصی برای هر اکانت
     // ==========================================
     var STORAGE_KEY = "basket_pro_leaderboard_v3";
 
@@ -911,6 +909,8 @@
       if (myIdx >= 0) {
         badgeEl.textContent = "رتبه شما: #" + (myIdx + 1);
         setLocalBest(Number(list[myIdx].score));
+        var bestEl = document.getElementById("bestScore");
+        if (bestEl) bestEl.textContent = String(getLocalBest());
       } else {
         badgeEl.textContent = player.isAuth ? "رتبه شما: ثبت نشده" : "حالت مهمان";
       }
@@ -1171,7 +1171,7 @@
     window.addEventListener("resize", resize);
     resize();
 
-    var gameState = "READY";
+    var gameState = "START_MENU";
     var score = 0;
     var timeLeft = 21.0;
     var lastTime = 0;
@@ -1267,7 +1267,7 @@
       }
     }
 
-    function resetGame() {
+    function setupCourtOnly() {
       score = 0;
       timeLeft = 21.0;
       windDir = 1;
@@ -1285,19 +1285,37 @@
         chainStrands[c].angle = 0;
         chainStrands[c].vel = 0;
       }
-      gameState = "READY";
       document.getElementById("hudScore").textContent = "0";
+      updateCoinAndFlagHud();
+    }
+
+    function openStartScreen() {
+      setupCourtOnly();
+      gameState = "START_MENU";
+      document.getElementById("screenBannerTitle").textContent = "🏀 BASKET PRO";
+      document.getElementById("finalScoreBox").style.display = "none";
+      document.getElementById("bestScore").textContent = String(getLocalBest());
+      document.getElementById("mainActionBtn").textContent = "▶️ شروع بازی";
+      document.getElementById("gameOverScreen").classList.remove("hidden");
+      renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
+    }
+
+    function resetGame() {
+      setupCourtOnly();
+      gameState = "READY";
       document.getElementById("gameOverScreen").classList.add("hidden");
       document.getElementById("hintPill").classList.remove("hidden");
-      updateCoinAndFlagHud();
     }
 
     async function triggerGameOver() {
       gameState = "GAMEOVER";
       isDragging = false;
       playBuzzer();
+      document.getElementById("screenBannerTitle").textContent = "TIME'S UP! ⏱️";
+      document.getElementById("finalScoreBox").style.display = "block";
       document.getElementById("finalScore").textContent = String(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
+      document.getElementById("mainActionBtn").textContent = "🔄 بازی مجدد";
       updateCoinAndFlagHud();
       document.getElementById("gameOverScreen").classList.remove("hidden");
       await submitScore(score);
@@ -1332,7 +1350,8 @@
     }
 
     function handleStart(e) {
-      if (gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
+      if (gameState === "START_MENU" || gameState === "GAMEOVER" || gameState === "BUZZER_WAIT") return;
+      if (!document.getElementById("gameOverScreen").classList.contains("hidden")) return;
       if (!document.getElementById("rankModal").classList.contains("hidden")) return;
       if (!document.getElementById("shopModal").classList.contains("hidden")) return;
       initAudio();
@@ -2242,7 +2261,7 @@
     }
 
     updateCoinAndFlagHud();
-    resetGame();
+    openStartScreen();
     lastTime = performance.now();
     requestAnimationFrame(renderLoop);
   </script>
