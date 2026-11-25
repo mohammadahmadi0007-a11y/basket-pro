@@ -237,12 +237,13 @@
       width: 26px;
       height: 26px;
       border-radius: 50%;
-      background: #ff6b35;
+      background: linear-gradient(135deg, #ff6b35, #f59e0b);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
       font-size: 12px;
+      color: #fff;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -526,7 +527,7 @@
 
     function forwardChallenge() {
       var best = Math.max(score, getLocalBest());
-      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=1";
+      var gameLink = "https://ble.ir/" + BOT_USERNAME + "?startapp=play";
       var msgText = "🏀 رکورد من در بازی BASKET PRO شد " + best + " امتیاز!\nاگه می‌تونی رکوردمو بزن 👇🔥\n" + gameLink + "\n\n🎮 کانال بازی‌ها: @" + CHANNEL_USERNAME;
       var baleShareUrl = "https://ble.ir/share/url?url=" + encodeURIComponent(gameLink) + "&text=" + encodeURIComponent(msgText);
 
@@ -846,8 +847,10 @@
       listEl.innerHTML = list.slice(0, 10).map(function(item, i) {
         var isMe = isAuthenticated && String(item.id) === currentUser.id;
         var rankIcon = medals[i] || ("#" + (i + 1));
-        var initial = (item.name || "ب").trim().charAt(0);
-        var avatarHtml = item.photo ? '<img src="' + item.photo + '" alt="" />' : '<span>' + initial + '</span>';
+        var initial = (item.name || "ب").trim().charAt(0).toUpperCase();
+        var avatarHtml = item.photo
+          ? '<img src="' + item.photo + '" onerror="this.parentNode.textContent=\'' + initial + '\'" alt="" />'
+          : '<span>' + initial + '</span>';
         return '<div class="rank-item ' + (isMe ? "me" : "") + '">' +
           '<div class="player-info">' +
           '<span style="min-width:24px;font-weight:bold;">' + rankIcon + '</span>' +
@@ -1091,7 +1094,6 @@
     window.addEventListener("resize", resize);
     resize();
 
-    var st = "READY";
     var gameState = "READY";
     var score = 0;
     var timeLeft = 21.0;
