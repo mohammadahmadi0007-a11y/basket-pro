@@ -495,6 +495,8 @@
     var CHANNEL_USERNAME = "gamee_balee";
     var CHANNEL_URL = "https://ble.ir/" + CHANNEL_USERNAME;
     var LEADERBOARD_API_URL = "https://kido-db.mohammadahmadi0007.workers.dev/basket_lb.json";
+    var GRAVITY = 910;
+    var AIM_FLIGHT_TIME = 0.93;
 
     var webapp = (window.Bale && window.Bale.WebApp) || (window.Telegram && window.Telegram.WebApp) || null;
     if (webapp) {
@@ -800,6 +802,7 @@
     // ۳. مدیریت رنکینگ آنلاین اختصاصی برای هر اکانت
     // ==========================================
     var STORAGE_KEY = "basket_pro_leaderboard_v3";
+    var cachedLeaderboard = [];
 
     function getBestKeyForPlayer(playerId) {
       return "basket_pro_best_" + String(playerId);
@@ -815,113 +818,33 @@
       }
     }
 
-    async function loadLeaderboard() {
-      if (LEADERBOARD_API_URL) {
-        try {
-          var res = await fetch(LEADERBOARD_API_URL + "?t=" + Date.now());
-          if (res.ok) {
-            var data = await res.json();
-            if (Array.isArray(data)) {
-              safeSet(STORAGE_KEY, JSON.stringify(data));
-              return data;
-            }
-          }
-        } catch (e) {}
-      }
-      try {
-        var raw = JSON.parse(safeGet(STORAGE_KEY) || "[]");
-        return Array.isArray(raw) ? raw : [];
-      } catch (e) { return []; }
-    }
-
-    async function submitScore(newScore) {
-      var player = getCurrentPlayer();
-      setLocalBest(newScore);
-      var bestForPlayer = Math.max(newScore, getLocalBest());
-      if (bestForPlayer <= 0) return;
-
-      var list = await loadLeaderboard();
-
+    function mergeAndSortList(rawList) {
       var map = new Map();
-      for (var k = 0; k < list.length; k++) {
-        var row = list[k];
+      for (var k = 0; k < rawList.length; k++) {
+        var row = rawList[k];
         if (!row || !row.id) continue;
         var rowId = String(row.id);
-        if (!map.has(rowId) || Number(row.score) > Number(map.get(rowId).score)) {
-          map.set(rowId, row);
-        }
-      }
-      list = Array.from(map.values());
-
-      var idx = list.findIndex(function(u) { return String(u.id) === player.id; });
-      if (idx >= 0) {
-        if (bestForPlayer > Number(list[idx].score)) {
-          list[idx].score = bestForPlayer;
-        }
-        list[idx].name = player.name;
-        list[idx].photo = player.photo;
-        if (Number(list[idx].score) > getLocalBest()) {
-          setLocalBest(Number(list[idx].score));
-        }
-      } else {
-        list.push({
-          id: player.id,
-          name: player.name,
-          photo: player.photo,
-          score: bestForPlayer
-        });
-      }
-
-      list.sort(function(a, b) { return Number(b.score) - Number(a.score); });
-      list = list.slice(0, 30);
-      safeSet(STORAGE_KEY, JSON.stringify(list));
-
-      if (LEADERBOARD_API_URL) {
-        try {
-          await fetch(LEADERBOARD_API_URL, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(list)
+        var sc = Number(row.score || 0);
+        if (!map.has(rowId) || sc > Number(map.get(rowId).score || 0)) {
+          map.set(rowId, {
+            id: rowId,
+            name: row.name || "بازیکن",
+            photo: row.photo || "",
+            score: sc
           });
-        } catch (e) {}
+        }
       }
+      var arr = Array.from(map.values());
+      arr.sort(function(a, b) { return Number(b.score) - Number(a.score); });
+      return arr.slice(0, 30);
     }
 
-    async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
-      var listEl = document.getElementById(listElId);
-      var badgeEl = document.getElementById(badgeElId);
-      var guestWarn = document.getElementById(guestWarnId);
-      if (!listEl || !badgeEl) return;
-
-      var player = getCurrentPlayer();
-
-      if (guestWarn) {
-        if (!player.isAuth) guestWarn.classList.remove("hidden");
-        else guestWarn.classList.add("hidden");
-      }
-
-      listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">در حال دریافت جدول...</div>';
-
-      var list = await loadLeaderboard();
-      list.sort(function(a, b) { return Number(b.score) - Number(a.score); });
-
-      var myIdx = list.findIndex(function(u) { return String(u.id) === player.id; });
-      if (myIdx >= 0) {
-        badgeEl.textContent = "رتبه شما: #" + (myIdx + 1);
-        setLocalBest(Number(list[myIdx].score));
-        var bestEl = document.getElementById("bestScore");
-        if (bestEl) bestEl.textContent = String(getLocalBest());
-      } else {
-        badgeEl.textContent = player.isAuth ? "رتبه شما: ثبت نشده" : "حالت مهمان";
-      }
-
+    function buildLeaderboardHtml(list, player) {
       if (list.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">هنوز رکوردی ثبت نشده! اولین نفر باش 🏀</div>';
-        return;
+        return '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">هنوز رکوردی ثبت نشده! اولین نفر باش 🏀</div>';
       }
-
       var medals = ["🥇", "🥈", "🥉"];
-      listEl.innerHTML = list.slice(0, 10).map(function(item, i) {
+      return list.slice(0, 10).map(function(item, i) {
         var isMe = String(item.id) === player.id;
         var rankIcon = medals[i] || ("#" + (i + 1));
         var initial = (item.name || "ب").trim().charAt(0).toUpperCase();
@@ -937,6 +860,122 @@
           '<span class="score-pill">' + item.score + '</span>' +
           '</div>';
       }).join("");
+    }
+
+    function upsertPlayerIntoCache(player, bestVal) {
+      var baseList = cachedLeaderboard.length > 0 ? cachedLeaderboard.slice() : [];
+      if (baseList.length === 0) {
+        try {
+          var loc = JSON.parse(safeGet(STORAGE_KEY) || "[]");
+          if (Array.isArray(loc)) baseList = loc;
+        } catch (e) {}
+      }
+      var idx = baseList.findIndex(function(u) { return String(u.id) === player.id; });
+      if (idx >= 0) {
+        if (bestVal > Number(baseList[idx].score || 0)) {
+          baseList[idx].score = bestVal;
+        }
+        baseList[idx].name = player.name;
+        if (player.photo) baseList[idx].photo = player.photo;
+      } else if (bestVal > 0) {
+        baseList.push({
+          id: player.id,
+          name: player.name,
+          photo: player.photo,
+          score: bestVal
+        });
+      }
+      cachedLeaderboard = mergeAndSortList(baseList);
+      safeSet(STORAGE_KEY, JSON.stringify(cachedLeaderboard));
+      return cachedLeaderboard;
+    }
+
+    async function loadLeaderboard() {
+      if (LEADERBOARD_API_URL) {
+        try {
+          var res = await fetch(LEADERBOARD_API_URL + "?t=" + Date.now());
+          if (res.ok) {
+            var data = await res.json();
+            if (Array.isArray(data)) {
+              var mergedRemote = mergeAndSortList(data);
+              var p = getCurrentPlayer();
+              var locBest = getLocalBest();
+              var pIdx = mergedRemote.findIndex(function(u) { return String(u.id) === p.id; });
+              if (pIdx >= 0 && locBest > Number(mergedRemote[pIdx].score || 0)) {
+                mergedRemote[pIdx].score = locBest;
+                mergedRemote = mergeAndSortList(mergedRemote);
+              }
+              cachedLeaderboard = mergedRemote;
+              safeSet(STORAGE_KEY, JSON.stringify(cachedLeaderboard));
+              return cachedLeaderboard;
+            }
+          }
+        } catch (e) {}
+      }
+      try {
+        var raw = JSON.parse(safeGet(STORAGE_KEY) || "[]");
+        cachedLeaderboard = Array.isArray(raw) ? mergeAndSortList(raw) : [];
+        return cachedLeaderboard;
+      } catch (e) { return cachedLeaderboard; }
+    }
+
+    async function submitScore(newScore) {
+      var player = getCurrentPlayer();
+      setLocalBest(newScore);
+      var bestForPlayer = Math.max(Number(newScore || 0), getLocalBest());
+      if (bestForPlayer <= 0) return cachedLeaderboard;
+
+      var list = upsertPlayerIntoCache(player, bestForPlayer);
+
+      if (LEADERBOARD_API_URL) {
+        try {
+          await fetch(LEADERBOARD_API_URL, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(list)
+          });
+        } catch (e) {}
+      }
+      return list;
+    }
+
+    async function renderLeaderboard(listElId, badgeElId, guestWarnId) {
+      var listEl = document.getElementById(listElId);
+      var badgeEl = document.getElementById(badgeElId);
+      var guestWarn = document.getElementById(guestWarnId);
+      if (!listEl || !badgeEl) return;
+
+      var player = getCurrentPlayer();
+
+      if (guestWarn) {
+        if (!player.isAuth) guestWarn.classList.remove("hidden");
+        else guestWarn.classList.add("hidden");
+      }
+
+      var currentBest = getLocalBest();
+      var initialList = currentBest > 0 ? upsertPlayerIntoCache(player, currentBest) : cachedLeaderboard;
+      if (initialList.length > 0) {
+        listEl.innerHTML = buildLeaderboardHtml(initialList, player);
+        var i0 = initialList.findIndex(function(u) { return String(u.id) === player.id; });
+        if (i0 >= 0) badgeEl.textContent = "رتبه شما: #" + (i0 + 1);
+      } else {
+        listEl.innerHTML = '<div style="text-align:center;color:#cfa5aa;font-size:12px;padding:12px;">در حال دریافت جدول...</div>';
+      }
+
+      var list = await loadLeaderboard();
+      list = mergeAndSortList(list);
+
+      var myIdx = list.findIndex(function(u) { return String(u.id) === player.id; });
+      if (myIdx >= 0) {
+        badgeEl.textContent = "رتبه شما: #" + (myIdx + 1);
+        setLocalBest(Number(list[myIdx].score));
+        var bestEl = document.getElementById("bestScore");
+        if (bestEl) bestEl.textContent = String(getLocalBest());
+      } else {
+        badgeEl.textContent = player.isAuth ? "رتبه شما: ثبت نشده" : "حالت مهمان";
+      }
+
+      listEl.innerHTML = buildLeaderboardHtml(list, player);
     }
 
     function openRankModal() {
@@ -1215,7 +1254,7 @@
     var dragCurr = { x: 0, y: 0 };
     var aimVx = 0;
     var aimVy = 0;
-    var aimFlightT = 0.86;
+    var aimFlightT = AIM_FLIGHT_TIME;
 
     var popups = [];
     var flashes = [];
@@ -1311,13 +1350,28 @@
       gameState = "GAMEOVER";
       isDragging = false;
       playBuzzer();
+
+      var player = getCurrentPlayer();
+      setLocalBest(score);
+      var computedBest = Math.max(Number(score || 0), getLocalBest());
+
       document.getElementById("screenBannerTitle").textContent = "TIME'S UP! ⏱️";
       document.getElementById("finalScoreBox").style.display = "block";
       document.getElementById("finalScore").textContent = String(score);
-      document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
+      document.getElementById("bestScore").textContent = String(computedBest);
       document.getElementById("mainActionBtn").textContent = "🔄 بازی مجدد";
       updateCoinAndFlagHud();
       document.getElementById("gameOverScreen").classList.remove("hidden");
+
+      if (computedBest > 0) {
+        var instantList = upsertPlayerIntoCache(player, computedBest);
+        document.getElementById("endRankList").innerHTML = buildLeaderboardHtml(instantList, player);
+        var idxNow = instantList.findIndex(function(u) { return String(u.id) === player.id; });
+        if (idxNow >= 0) {
+          document.getElementById("myRankBadgeEnd").textContent = "رتبه شما: #" + (idxNow + 1);
+        }
+      }
+
       await submitScore(score);
       document.getElementById("bestScore").textContent = String(Math.max(score, getLocalBest()));
       await renderLeaderboard("endRankList", "myRankBadgeEnd", "guestWarningEnd");
@@ -1338,10 +1392,9 @@
       var aimTargetX = hoop.targetX + targetOffsetX;
       var aimTargetY = hoop.targetY + 6 + targetOffsetY;
 
-      aimFlightT = 0.86;
-      var gravity = 980;
+      aimFlightT = AIM_FLIGHT_TIME;
       aimVx = (aimTargetX - hp.x) / aimFlightT;
-      aimVy = (aimTargetY - hp.y - 0.5 * gravity * aimFlightT * aimFlightT) / aimFlightT;
+      aimVy = (aimTargetY - hp.y - 0.5 * GRAVITY * aimFlightT * aimFlightT) / aimFlightT;
     }
 
     function getPos(e) {
@@ -1519,7 +1572,6 @@
         }
       }
 
-      var gravity = 980;
       var rimY = hoop.y + 10;
 
       for (var i = activeBalls.length - 1; i >= 0; i--) {
@@ -1536,9 +1588,9 @@
           }
         }
 
-        var windForce = b.shotWindDir * b.shotWindLevel * 32;
+        var windForce = b.shotWindDir * b.shotWindLevel * 29;
         b.vx += windForce * dt;
-        b.vy += gravity * dt;
+        b.vy += GRAVITY * dt;
         b.x += b.vx * dt;
         b.y += b.vy * dt;
 
@@ -2186,12 +2238,11 @@
     function drawAimArc() {
       if (!isDragging || !hasBallInHand || gameState !== "PLAYING" || Math.hypot(aimVx, aimVy) < 120) return;
       var hp = handPos();
-      var gravity = 980;
       var dots = 15;
       for (var i = 1; i <= dots; i++) {
         var t = (aimFlightT * 0.92) * (i / dots);
         var px = hp.x + aimVx * t;
-        var py = hp.y + aimVy * t + 0.5 * gravity * t * t;
+        var py = hp.y + aimVy * t + 0.5 * GRAVITY * t * t;
         if (py > courtFloorY()) break;
         var alpha = 0.96 - (i / (dots + 4)) * 0.45;
 
